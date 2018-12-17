@@ -297,15 +297,6 @@ func (b *Broker) Bind(context context.Context, instanceID string, bindingID stri
 		driverName = "smbdriver"
 
 		mountConfig["source"] = source
-		mountConfig["username"] = bindOpts["username"]
-
-		if bindOpts["password"] != "" {
-			mountConfig["password"] = bindOpts["password"]
-		}
-
-		if bindOpts["domain"] != "" {
-			mountConfig["domain"] = bindOpts["domain"]
-		}
 	}
 
 	logger.Debug("volume-service-binding", lager.Data{"driver": driverName, "mountConfig": mountConfig, "share": source})

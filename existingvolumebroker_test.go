@@ -1474,12 +1474,13 @@ var _ = Describe("Broker", func() {
 				})
 			})
 
-			Context("when the service instance contains username and password", func() {
+			Context("when the service instance contains domain, username and password", func() {
 				BeforeEach(func() {
 					serviceInstance := brokerstore.ServiceInstance{
 						ServiceID: serviceID,
 						ServiceFingerPrint: map[string]interface{}{
 							existingvolumebroker.SHARE_KEY: "server:/some-share",
+							"domain":												"some-instance-domain",
 							"username":                     "some-instance-username",
 							"password":                     "some-instance-password",
 						},
@@ -1489,7 +1490,7 @@ var _ = Describe("Broker", func() {
 
 					bindDetails = brokerapi.BindDetails{
 						AppGUID:       "guid",
-						RawParameters: []byte(`{"username":"some-bind-username","password":"some-bind-password"}`),
+						RawParameters: []byte(`{"domain":"some-bind-domain","username":"some-bind-username","password":"some-bind-password"}`),
 					}
 				})
 
@@ -1499,13 +1500,41 @@ var _ = Describe("Broker", func() {
 
 					mc := binding.VolumeMounts[0].Device.MountConfig
 
-					v, ok := mc["username"].(string)
-					Expect(ok).To(BeTrue())
-					Expect(v).To(Equal("some-bind-username"))
+					Expect(mc["domain"]).To(Equal("some-bind-domain"))
+					Expect(mc["username"]).To(Equal("some-bind-username"))
+					Expect(mc["password"]).To(Equal("some-bind-password"))
+				})
 
-					v, ok = mc["password"].(string)
-					Expect(ok).To(BeTrue())
-					Expect(v).To(Equal("some-bind-password"))
+				Context("when the bind configuration is empty", func() {
+					BeforeEach(func() {
+						serviceInstance := brokerstore.ServiceInstance{
+							ServiceID: serviceID,
+							ServiceFingerPrint: map[string]interface{}{
+								existingvolumebroker.SHARE_KEY: "server:/some-share",
+								"domain":												"some-instance-domain",
+								"username":                     "some-instance-username",
+								"password":                     "some-instance-password",
+							},
+						}
+
+						fakeStore.RetrieveInstanceDetailsReturns(serviceInstance, nil)
+
+						bindDetails = brokerapi.BindDetails{
+							AppGUID:       "guid",
+							RawParameters: []byte{},
+						}
+					})
+
+					It("should use the values in the service instance configuration", func() {
+						binding, err := broker.Bind(ctx, instanceID, "binding-id", bindDetails)
+						Expect(err).NotTo(HaveOccurred())
+
+						mc := binding.VolumeMounts[0].Device.MountConfig
+
+					Expect(mc["domain"]).To(Equal("some-instance-domain"))
+					Expect(mc["username"]).To(Equal("some-instance-username"))
+					Expect(mc["password"]).To(Equal("some-instance-password"))
+					})
 				})
 			})
 
@@ -1534,6 +1563,36 @@ var _ = Describe("Broker", func() {
 				It("should succeed", func() {
 					_, err := broker.Bind(ctx, "some-instance-id", "binding-id", bindDetails)
 					Expect(err).NotTo(HaveOccurred())
+				})
+			})
+
+			Context("when the bind configuration contains non-string values", func() {
+				BeforeEach(func() {
+					serviceInstance := brokerstore.ServiceInstance{
+						ServiceID: serviceID,
+						ServiceFingerPrint: map[string]interface{}{
+							existingvolumebroker.SHARE_KEY: "server:/some-share",
+							"username":                     "some-instance-username",
+							"password":                     "some-instance-password",
+						},
+					}
+
+					fakeStore.RetrieveInstanceDetailsReturns(serviceInstance, nil)
+
+					bindDetails = brokerapi.BindDetails{
+						AppGUID:       "guid",
+						RawParameters: []byte(`{"username":123,"password":false}`),
+					}
+				})
+
+				It("should convert the bind configuration values to strings", func() {
+					binding, err := broker.Bind(ctx, instanceID, "binding-id", bindDetails)
+					Expect(err).NotTo(HaveOccurred())
+
+					mc := binding.VolumeMounts[0].Device.MountConfig
+
+					Expect(mc["username"]).To(Equal("123"))
+					Expect(mc["password"]).To(Equal("false"))
 				})
 			})
 
