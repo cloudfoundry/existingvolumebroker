@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"net/http"
 	"path"
 	"regexp"
 	"sync"
@@ -16,6 +17,7 @@ import (
 	"code.cloudfoundry.org/goshims/osshim"
 	"code.cloudfoundry.org/lager"
 	"code.cloudfoundry.org/service-broker-store/brokerstore"
+	vmo "code.cloudfoundry.org/volume-mount-options"
 	"github.com/pivotal-cf/brokerapi"
 )
 
@@ -51,7 +53,7 @@ type Broker struct {
 	clock      clock.Clock
 	store      brokerstore.Store
 	services   Services
-	config     Config
+	configMask vmo.MountOptsMask
 }
 
 //go:generate counterfeiter -o fakes/fake_services.go . Services
@@ -66,7 +68,7 @@ func New(
 	os osshim.Os,
 	clock clock.Clock,
 	store brokerstore.Store,
-	config *Config,
+	configMask vmo.MountOptsMask,
 ) *Broker {
 	theBroker := Broker{
 		brokerType: brokerType,
@@ -76,7 +78,7 @@ func New(
 		clock:      clock,
 		store:      store,
 		services:   services,
-		config:     *config,
+		configMask: configMask,
 	}
 
 	// ToDo: Check error?
@@ -221,11 +223,20 @@ func (b *Broker) Bind(context context.Context, instanceID string, bindingID stri
 			return brokerapi.Binding{}, err
 		}
 	}
+
 	for k, v := range bindOpts {
 		opts[k] = v
 	}
 
-	mode, err := evaluateMode(opts)
+	mountOpts, err := vmo.NewMountOpts(opts, b.configMask)
+	if err != nil {
+		logger.Info("parameters-error-assign-entries", lager.Data{
+			"given_options": opts,
+		})
+		return brokerapi.Binding{}, err
+	}
+
+	mode, err := evaluateMode(mountOpts)
 	if err != nil {
 		return brokerapi.Binding{}, err
 	}
@@ -241,72 +252,23 @@ func (b *Broker) Bind(context context.Context, instanceID string, bindingID stri
 		return brokerapi.Binding{}, err
 	}
 
-	source := ""
-	if _, ok := opts["share"]; ok {
-		source = opts["share"].(string)
-	}
+	driverName := "smbdriver"
 
-	if b.isNFSBroker() {
-		source = fmt.Sprintf("nfs://%s", source)
-	}
+	logger.Debug("volume-service-binding", lager.Data{"driver": driverName, "mountOpts": mountOpts})
 
-	// TODO--brokerConfig is not re-entrant because it stores state in SetEntries--we should modify it to
-	// TODO--be stateless.  Until we do that, we will just make a local copy, but we should really
-	// TODO--refactor this to something more efficient.
-	tempConfig := b.config.Copy()
-	if err := tempConfig.SetEntries(logger, source, opts, []string{
-		"share", "mount", "kerberosPrincipal", "kerberosKeytab", "readonly",
-	}); err != nil {
-		logger.Info("parameters-error-assign-entries", lager.Data{
-			"given_source":  source,
-			"given_options": opts,
-			"mount":         tempConfig.mount,
-			"sloppy_mount":  tempConfig.sloppyMount,
-		})
-		return brokerapi.Binding{}, err
-	}
-
-	driverName := "unknown"
-	mountConfig := tempConfig.MountConfig()
-
-	if mode == "r" {
-		// we need this side-channel because volman doesn't share mode information with volume drivers, so we need to
-		// record it in the opts
-		mountConfig["readonly"] = true
-	}
-
-	if b.isNFSBroker() {
-		driverName = "nfsv3driver"
-
-		mountConfig["source"] = tempConfig.Share(source)
-
-		// if this is an experimental service, set EXPERIMENTAL_TAG to true in the mount config
-		services, err := b.Services(context)
-		if err != nil {
-			return brokerapi.Binding{}, err
-		}
-		for _, s := range services {
-			if s.ID == instanceDetails.ServiceID {
-				if inArray(s.Tags, EXPERIMENTAL_TAG) {
-					mountConfig[EXPERIMENTAL_TAG] = true
-				}
-				break
-			}
-		}
-	} else if b.isSMBBroker() {
-		driverName = "smbdriver"
-
-		mountConfig["source"] = source
-	}
-
-	logger.Debug("volume-service-binding", lager.Data{"driver": driverName, "mountConfig": mountConfig, "share": source})
-
-	s, err := b.hash(mountConfig)
+	s, err := b.hash(mountOpts)
 	if err != nil {
-		logger.Error("error-calculating-volume-id", err, lager.Data{"config": mountConfig, "bindingID": bindingID, "instanceID": instanceID})
+		logger.Error("error-calculating-volume-id", err, lager.Data{"config": mountOpts, "bindingID": bindingID, "instanceID": instanceID})
 		return brokerapi.Binding{}, err
 	}
 	volumeId := fmt.Sprintf("%s-%s", instanceID, s)
+
+	mountConfig := map[string]interface{}{}
+
+	// TODO: refactor this back out after we PR the chamges to brokerapi to make MountConfig a map[string]interface{}
+	for k, v := range mountOpts {
+		mountConfig[k] = v
+	}
 
 	ret := brokerapi.Binding{
 		Credentials: struct{}{}, // if nil, cloud controller chokes on response
@@ -324,12 +286,12 @@ func (b *Broker) Bind(context context.Context, instanceID string, bindingID stri
 	return ret, nil
 }
 
-func (b *Broker) hash(mountConfig map[string]interface{}) (string, error) {
+func (b *Broker) hash(mountOpts map[string]string) (string, error) {
 	var (
 		bytes []byte
 		err   error
 	)
-	if bytes, err = json.Marshal(mountConfig); err != nil {
+	if bytes, err = json.Marshal(mountOpts); err != nil {
 		return "", err
 	}
 	return fmt.Sprintf("%x", md5.Sum(bytes)), nil
@@ -397,15 +359,15 @@ func evaluateContainerPath(parameters map[string]interface{}, volId string) stri
 	return path.Join(DEFAULT_CONTAINER_PATH, volId)
 }
 
-func evaluateMode(parameters map[string]interface{}) (string, error) {
-	if ro, ok := parameters["readonly"]; ok {
-		switch ro := ro.(type) {
-		case bool:
-			return readOnlyToMode(ro), nil
-		default:
-			return "", brokerapi.ErrRawParamsInvalid
+func evaluateMode(parameters map[string]string) (string, error) {
+	if ro, ok := parameters["ro"]; ok {
+		if ro == "true" {
+			return "r", nil
 		}
+
+		return "", brokerapi.NewFailureResponse(fmt.Errorf("Invalid ro parameter value: %q", ro), http.StatusBadRequest, "invalid-ro-param")
 	}
+
 	return "rw", nil
 }
 
