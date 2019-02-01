@@ -94,7 +94,7 @@ var _ = Describe("Broker", func() {
 					"username",
 					"version",
 				},
-				map[string]string{
+				map[string]interface{}{
 					"sloppy_mount": "false",
 				},
 				map[string]string{
@@ -812,7 +812,7 @@ var _ = Describe("Broker", func() {
 				BeforeEach(func() {
 					configMask, err := vmo.NewMountOptsMask(
 						[]string{},
-						map[string]string{},
+						map[string]interface{}{},
 						map[string]string{
 							"readonly": "ro",
 							"share":    "source",
@@ -857,7 +857,7 @@ var _ = Describe("Broker", func() {
 				BeforeEach(func() {
 					configMask, err := vmo.NewMountOptsMask(
 						[]string{},
-						map[string]string{
+						map[string]interface{}{
 							"sloppy_mount": "true",
 						},
 						map[string]string{
@@ -912,7 +912,7 @@ var _ = Describe("Broker", func() {
 						[]string{
 							"allow_root",
 						},
-						map[string]string{},
+						map[string]interface{}{},
 						map[string]string{
 							"readonly": "ro",
 							"share":    "source",
@@ -1067,7 +1067,7 @@ var _ = Describe("Broker", func() {
 					"uid",
 					"username",
 				},
-				map[string]string{},
+				map[string]interface{}{},
 				map[string]string{
 					"readonly": "ro",
 					"share":    "source",
@@ -1776,7 +1776,7 @@ var _ = Describe("Broker", func() {
 				BeforeEach(func() {
 					configMask, err := vmo.NewMountOptsMask(
 						[]string{},
-						map[string]string{},
+						map[string]interface{}{},
 						map[string]string{
 							"readonly": "ro",
 							"share":    "source",
@@ -1822,7 +1822,7 @@ var _ = Describe("Broker", func() {
 							"allow_root",
 							"source",
 						},
-						map[string]string{},
+						map[string]interface{}{},
 						map[string]string{
 							"readonly": "ro",
 							"share":    "source",

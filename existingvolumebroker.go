@@ -18,6 +18,7 @@ import (
 	"code.cloudfoundry.org/lager"
 	"code.cloudfoundry.org/service-broker-store/brokerstore"
 	vmo "code.cloudfoundry.org/volume-mount-options"
+	vmou "code.cloudfoundry.org/volume-mount-options/utils"
 	"github.com/pivotal-cf/brokerapi"
 )
 
@@ -286,7 +287,7 @@ func (b *Broker) Bind(context context.Context, instanceID string, bindingID stri
 	return ret, nil
 }
 
-func (b *Broker) hash(mountOpts map[string]string) (string, error) {
+func (b *Broker) hash(mountOpts map[string]interface{}) (string, error) {
 	var (
 		bytes []byte
 		err   error
@@ -359,23 +360,17 @@ func evaluateContainerPath(parameters map[string]interface{}, volId string) stri
 	return path.Join(DEFAULT_CONTAINER_PATH, volId)
 }
 
-func evaluateMode(parameters map[string]string) (string, error) {
+func evaluateMode(parameters map[string]interface{}) (string, error) {
 	if ro, ok := parameters["ro"]; ok {
-		if ro == "true" {
+		roc := vmou.InterfaceToString(ro)
+		if roc == "true" {
 			return "r", nil
 		}
 
-		return "", brokerapi.NewFailureResponse(fmt.Errorf("Invalid ro parameter value: %q", ro), http.StatusBadRequest, "invalid-ro-param")
+		return "", brokerapi.NewFailureResponse(fmt.Errorf("Invalid ro parameter value: %q", roc), http.StatusBadRequest, "invalid-ro-param")
 	}
 
 	return "rw", nil
-}
-
-func readOnlyToMode(ro bool) string {
-	if ro {
-		return "r"
-	}
-	return "rw"
 }
 
 func getFingerprint(rawObject interface{}) (map[string]interface{}, error) {
