@@ -111,7 +111,7 @@ func (b *Broker) Provision(context context.Context, instanceID string, details b
 
 	var configuration map[string]interface{}
 
-	var decoder *json.Decoder = json.NewDecoder(bytes.NewBuffer(details.RawParameters))
+	var decoder = json.NewDecoder(bytes.NewBuffer(details.RawParameters))
 	err := decoder.Decode(&configuration)
 	if err != nil {
 		return brokerapi.ProvisionedServiceSpec{}, brokerapi.ErrRawParamsInvalid
@@ -220,7 +220,7 @@ func (b *Broker) Bind(context context.Context, instanceID string, bindingID stri
 
 	var bindOpts map[string]interface{}
 	if len(bindDetails.RawParameters) > 0 {
-		if err := json.Unmarshal(bindDetails.RawParameters, &bindOpts); err != nil {
+		if err = json.Unmarshal(bindDetails.RawParameters, &bindOpts); err != nil {
 			return brokerapi.Binding{}, err
 		}
 	}
