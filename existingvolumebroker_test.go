@@ -1361,14 +1361,14 @@ var _ = Describe("Broker", func() {
 				uid = "1234"
 				gid = "5678"
 
-				serviceInstance := brokerstore.ServiceInstance{
-					ServiceID: serviceID,
-					ServiceFingerPrint: map[string]interface{}{
-						existingvolumebroker.SHARE_KEY: "server:/some-share",
-					},
+				fakeStore.RetrieveInstanceDetailsStub = func(instanceID string) (brokerstore.ServiceInstance, error) {
+					return brokerstore.ServiceInstance{
+						ServiceID: serviceID,
+						ServiceFingerPrint: map[string]interface{}{
+							existingvolumebroker.SHARE_KEY: "server:/some-share",
+						},
+					}, nil
 				}
-
-				fakeStore.RetrieveInstanceDetailsReturns(serviceInstance, nil)
 				fakeStore.RetrieveBindingDetailsReturns(brokerapi.BindDetails{}, errors.New("yar"))
 
 				bindParameters = map[string]interface{}{
@@ -1505,16 +1505,16 @@ var _ = Describe("Broker", func() {
 
 			Context("when the service instance contains uid and gid", func() {
 				BeforeEach(func() {
-					serviceInstance := brokerstore.ServiceInstance{
-						ServiceID: serviceID,
-						ServiceFingerPrint: map[string]interface{}{
-							existingvolumebroker.SHARE_KEY: "server:/some-share",
-							"uid":                          "1",
-							"gid":                          2,
-						},
+					fakeStore.RetrieveInstanceDetailsStub = func(instanceID string) (brokerstore.ServiceInstance, error) {
+						return brokerstore.ServiceInstance{
+							ServiceID: serviceID,
+							ServiceFingerPrint: map[string]interface{}{
+								existingvolumebroker.SHARE_KEY: "server:/some-share",
+								"uid":                          "1",
+								"gid":                          2,
+							},
+						}, nil
 					}
-
-					fakeStore.RetrieveInstanceDetailsReturns(serviceInstance, nil)
 				})
 
 				It("should favor the values in the bind configuration", func() {
@@ -1559,17 +1559,17 @@ var _ = Describe("Broker", func() {
 
 			Context("when the service instance contains domain, username and password", func() {
 				BeforeEach(func() {
-					serviceInstance := brokerstore.ServiceInstance{
-						ServiceID: serviceID,
-						ServiceFingerPrint: map[string]interface{}{
-							existingvolumebroker.SHARE_KEY: "server:/some-share",
-							"domain":                       "some-instance-domain",
-							"username":                     "some-instance-username",
-							"password":                     "some-instance-password",
-						},
+					fakeStore.RetrieveInstanceDetailsStub = func(instanceID string) (brokerstore.ServiceInstance, error) {
+						return brokerstore.ServiceInstance{
+							ServiceID: serviceID,
+							ServiceFingerPrint: map[string]interface{}{
+								existingvolumebroker.SHARE_KEY: "server:/some-share",
+								"domain":                       "some-instance-domain",
+								"username":                     "some-instance-username",
+								"password":                     "some-instance-password",
+							},
+						}, nil
 					}
-
-					fakeStore.RetrieveInstanceDetailsReturns(serviceInstance, nil)
 
 					bindDetails = brokerapi.BindDetails{
 						AppGUID:       "guid",
@@ -1761,7 +1761,9 @@ var _ = Describe("Broker", func() {
 			})
 
 			It("errors when the service instance does not exist", func() {
-				fakeStore.RetrieveInstanceDetailsReturns(brokerstore.ServiceInstance{}, errors.New("Awesome!"))
+				fakeStore.RetrieveInstanceDetailsStub = func(instanceID string) (brokerstore.ServiceInstance, error) {
+					return brokerstore.ServiceInstance{}, errors.New("Awesome!")
+				}
 
 				_, err := broker.Bind(ctx, "nonexistent-instance-id", "binding-id", brokerapi.BindDetails{AppGUID: "guid"})
 				Expect(err).To(Equal(brokerapi.ErrInstanceDoesNotExist))

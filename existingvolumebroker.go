@@ -203,7 +203,7 @@ func (b *Broker) Bind(context context.Context, instanceID string, bindingID stri
 		}
 	}()
 
-	logger.Info("starting-nfsbroker-bind")
+	logger.Info("starting-broker-bind")
 	instanceDetails, err := b.store.RetrieveInstanceDetails(instanceID)
 	if err != nil {
 		return brokerapi.Binding{}, brokerapi.ErrInstanceDoesNotExist
@@ -231,9 +231,7 @@ func (b *Broker) Bind(context context.Context, instanceID string, bindingID stri
 
 	mountOpts, err := vmo.NewMountOpts(opts, b.configMask)
 	if err != nil {
-		logger.Info("parameters-error-assign-entries", lager.Data{
-			"given_options": opts,
-		})
+		logger.Error("error-generating-mount-options", err)
 		return brokerapi.Binding{}, err
 	}
 
@@ -266,7 +264,6 @@ func (b *Broker) Bind(context context.Context, instanceID string, bindingID stri
 
 	mountConfig := map[string]interface{}{}
 
-	// TODO: refactor this back out after we PR the chamges to brokerapi to make MountConfig a map[string]interface{}
 	for k, v := range mountOpts {
 		mountConfig[k] = v
 	}
