@@ -1588,6 +1588,39 @@ var _ = Describe("Broker", func() {
 					Expect(mc["password"]).To(Equal("some-bind-password"))
 				})
 
+				Context("when the bind configuration overrides the share", func() {
+					BeforeEach(func() {
+						serviceInstance := brokerstore.ServiceInstance{
+							ServiceID: serviceID,
+							ServiceFingerPrint: map[string]interface{}{
+								existingvolumebroker.SHARE_KEY: "server:/some-share",
+								"domain":                       "some-instance-domain",
+								"username":                     "some-instance-username",
+								"password":                     "some-instance-password",
+							},
+						}
+
+						fakeStore.RetrieveInstanceDetailsReturns(serviceInstance, nil)
+
+						bindParameters = map[string]interface{}{
+							existingvolumebroker.SHARE_KEY: "server:/some-other-share",
+						}
+
+						bindMessage, err := json.Marshal(bindParameters)
+						Expect(err).NotTo(HaveOccurred())
+
+						bindDetails = brokerapi.BindDetails{
+							AppGUID:       "guid",
+							RawParameters: bindMessage,
+						}
+					})
+
+					It("should error", func() {
+						_, err := broker.Bind(ctx, instanceID, "binding-id", bindDetails)
+						Expect(err).To(HaveOccurred())
+					})
+				})
+
 				Context("when the bind configuration is empty", func() {
 					BeforeEach(func() {
 						serviceInstance := brokerstore.ServiceInstance{

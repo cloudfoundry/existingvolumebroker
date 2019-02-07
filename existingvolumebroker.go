@@ -47,14 +47,15 @@ const (
 )
 
 type Broker struct {
-	brokerType BrokerType
-	logger     lager.Logger
-	os         osshim.Os
-	mutex      lock
-	clock      clock.Clock
-	store      brokerstore.Store
-	services   Services
-	configMask vmo.MountOptsMask
+	brokerType              BrokerType
+	logger                  lager.Logger
+	os                      osshim.Os
+	mutex                   lock
+	clock                   clock.Clock
+	store                   brokerstore.Store
+	services                Services
+	configMask              vmo.MountOptsMask
+	DisallowedBindOverrides []string
 }
 
 //go:generate counterfeiter -o fakes/fake_services.go . Services
@@ -72,14 +73,15 @@ func New(
 	configMask vmo.MountOptsMask,
 ) *Broker {
 	theBroker := Broker{
-		brokerType: brokerType,
-		logger:     logger,
-		os:         os,
-		mutex:      &sync.Mutex{},
-		clock:      clock,
-		store:      store,
-		services:   services,
-		configMask: configMask,
+		brokerType:              brokerType,
+		logger:                  logger,
+		os:                      os,
+		mutex:                   &sync.Mutex{},
+		clock:                   clock,
+		store:                   store,
+		services:                services,
+		configMask:              configMask,
+		DisallowedBindOverrides: []string{"share"},
 	}
 
 	// ToDo: Check error?
@@ -226,6 +228,15 @@ func (b *Broker) Bind(context context.Context, instanceID string, bindingID stri
 	}
 
 	for k, v := range bindOpts {
+		if _, ok := opts[k]; ok {
+			// test whether it is ok to override this value
+			for _, disallowed := range b.DisallowedBindOverrides {
+				if k == disallowed {
+					logger.Error("err-override-not-allowed-in-bind", brokerapi.ErrRawParamsInvalid, lager.Data{"key": k})
+					return brokerapi.Binding{}, brokerapi.ErrRawParamsInvalid
+				}
+			}
+		}
 		opts[k] = v
 	}
 
