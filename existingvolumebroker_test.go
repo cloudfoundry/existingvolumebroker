@@ -2,10 +2,6 @@ package existingvolumebroker_test
 
 import (
 	"bytes"
-	"context"
-	"encoding/json"
-	"errors"
-
 	"code.cloudfoundry.org/existingvolumebroker"
 	"code.cloudfoundry.org/existingvolumebroker/fakes"
 	"code.cloudfoundry.org/goshims/osshim/os_fake"
@@ -14,6 +10,9 @@ import (
 	"code.cloudfoundry.org/service-broker-store/brokerstore"
 	"code.cloudfoundry.org/service-broker-store/brokerstore/brokerstorefakes"
 	vmo "code.cloudfoundry.org/volume-mount-options"
+	"context"
+	"encoding/json"
+	"errors"
 	"github.com/pivotal-cf/brokerapi"
 
 	. "github.com/onsi/ginkgo"
@@ -39,7 +38,7 @@ var _ = Describe("Broker", func() {
 	})
 
 	// Pended the NFS tests until we update the nfsbbroker to use this library
-	PContext("when the broker type is NFS", func() {
+	Context("when the broker type is NFS", func() {
 		BeforeEach(func() {
 			fakeServices.ListReturns([]brokerapi.Service{
 				{
@@ -93,6 +92,7 @@ var _ = Describe("Broker", func() {
 					"uid",
 					"username",
 					"version",
+					"ro",
 				},
 				map[string]interface{}{
 					"sloppy_mount": "false",
@@ -485,15 +485,6 @@ var _ = Describe("Broker", func() {
 				Expect(binding.VolumeMounts[0].Mode).To(Equal("rw"))
 			})
 
-			//It("sets mode to `r` when readonly is true", func() {
-			//	bindDetails.Parameters["readonly"] = true
-			//	binding, err := broker.Bind(ctx, "some-instance-id", "binding-id", bindDetails)
-			//	Expect(err).NotTo(HaveOccurred())
-			//
-			//	Expect(binding.VolumeMounts[0].Mode).To(Equal("r"))
-			//	Expect(binding.VolumeMounts[0].Device.MountConfig["readonly"]).To(Equal(true))
-			//})
-
 			It("should write state", func() {
 				previousSaveCallCount := fakeStore.SaveCallCount()
 
@@ -511,7 +502,7 @@ var _ = Describe("Broker", func() {
 				Expect(err).NotTo(HaveOccurred())
 
 				_, err = broker.Bind(ctx, "some-instance-id", "binding-id", bindDetails)
-				Expect(err).To(Equal(brokerapi.ErrRawParamsInvalid))
+				Expect(err).To(MatchError(`Invalid ro parameter value: ""`))
 			})
 
 			It("fills in the driver name", func() {
@@ -665,28 +656,6 @@ var _ = Describe("Broker", func() {
 				It("should succeed", func() {
 					_, err := broker.Bind(ctx, "some-instance-id", "binding-id", bindDetails)
 					Expect(err).NotTo(HaveOccurred())
-				})
-			})
-
-			Context("when the service ID is an experimental service", func() {
-				BeforeEach(func() {
-					fakeStore.RetrieveInstanceDetailsReturns(
-						brokerstore.ServiceInstance{
-							ServiceID: "nfs-experimental-service-id",
-							ServiceFingerPrint: map[string]interface{}{
-								existingvolumebroker.SHARE_KEY: "server:/some-share",
-							},
-						}, nil)
-				})
-
-				It("includes 'experimental' in the service binding mount config", func() {
-					binding, err := broker.Bind(ctx, instanceID, "binding-id", bindDetails)
-					Expect(err).NotTo(HaveOccurred())
-
-					mc := binding.VolumeMounts[0].Device.MountConfig
-					_, ok := mc[existingvolumebroker.EXPERIMENTAL_TAG]
-
-					Expect(ok).To(BeTrue())
 				})
 			})
 
@@ -865,7 +834,7 @@ var _ = Describe("Broker", func() {
 							"share":    "source",
 						},
 						[]string{},
-						[]string{"source"},
+						[]string{},
 					)
 					Expect(err).NotTo(HaveOccurred())
 
@@ -911,6 +880,7 @@ var _ = Describe("Broker", func() {
 					configMask, err := vmo.NewMountOptsMask(
 						[]string{
 							"allow_root",
+							"source",
 						},
 						map[string]interface{}{},
 						map[string]string{
@@ -936,9 +906,7 @@ var _ = Describe("Broker", func() {
 				Context("given allow_root=true is supplied", func() {
 					BeforeEach(func() {
 						bindParameters := map[string]interface{}{
-							existingvolumebroker.Username: "principal name",
-							existingvolumebroker.Secret:   "some keytab data",
-							"allow_root":                  true,
+							"allow_root": true,
 						}
 
 						bindMessage, err := json.Marshal(bindParameters)

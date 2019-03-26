@@ -263,6 +263,9 @@ func (b *Broker) Bind(context context.Context, instanceID string, bindingID stri
 	}
 
 	driverName := "smbdriver"
+	if b.isNFSBroker() {
+		driverName = "nfsv3driver"
+	}
 
 	logger.Debug("volume-service-binding", lager.Data{"driver": driverName, "mountOpts": mountOpts})
 
