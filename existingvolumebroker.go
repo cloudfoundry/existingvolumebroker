@@ -248,6 +248,7 @@ func (b *Broker) Bind(context context.Context, instanceID string, bindingID stri
 
 	mode, err := evaluateMode(mountOpts)
 	if err != nil {
+		logger.Error("error-evaluating-mode", err)
 		return brokerapi.Binding{}, err
 	}
 
