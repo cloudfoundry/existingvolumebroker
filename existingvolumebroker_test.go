@@ -39,6 +39,11 @@ var _ = Describe("Broker", func() {
 
 	// Pended the NFS tests until we update the nfsbbroker to use this library
 	Context("when the broker type is NFS", func() {
+		var (
+			err error
+			configMask vmo.MountOptsMask
+		)
+
 		BeforeEach(func() {
 			fakeServices.ListReturns([]brokerapi.Service{
 				{
@@ -76,7 +81,7 @@ var _ = Describe("Broker", func() {
 				},
 			})
 
-			configMask, err := vmo.NewMountOptsMask(
+			configMask, err = vmo.NewMountOptsMask(
 				[]string{
 					"allow_other",
 					"allow_root",
@@ -93,6 +98,7 @@ var _ = Describe("Broker", func() {
 					"username",
 					"version",
 					"ro",
+					"readonly",
 				},
 				map[string]interface{}{
 					"sloppy_mount": "false",
@@ -390,6 +396,7 @@ var _ = Describe("Broker", func() {
 			})
 		})
 
+
 		Context(".Bind", func() {
 			var (
 				instanceID, serviceID string
@@ -485,15 +492,6 @@ var _ = Describe("Broker", func() {
 				Expect(binding.VolumeMounts[0].Mode).To(Equal("rw"))
 			})
 
-			It("should write state", func() {
-				previousSaveCallCount := fakeStore.SaveCallCount()
-
-				_, err := broker.Bind(ctx, "some-instance-id", "binding-id", bindDetails)
-				Expect(err).NotTo(HaveOccurred())
-
-				Expect(fakeStore.SaveCallCount()).To(Equal(previousSaveCallCount + 1))
-			})
-
 			It("errors if mode is not a boolean", func() {
 				var err error
 
@@ -503,6 +501,48 @@ var _ = Describe("Broker", func() {
 
 				_, err = broker.Bind(ctx, "some-instance-id", "binding-id", bindDetails)
 				Expect(err).To(MatchError(`Invalid ro parameter value: ""`))
+			})
+
+			Context("given readonly is specified", func() {
+				BeforeEach(func() {
+					bindParameters["readonly"] = true
+					bindDetails.RawParameters, err = json.Marshal(bindParameters)
+					Expect(err).NotTo(HaveOccurred())
+				})
+				It("should set the mode to RO and the mount config readonly flag to true", func() {
+					// SMB Broker/Driver run with this configuration of config mask (readonly canonicalized to ro)
+
+					var binding brokerapi.Binding
+
+					binding, err = broker.Bind(ctx, "some-instance-id", "binding-id", bindDetails)
+					Expect(err).NotTo(HaveOccurred())
+					Expect(binding.VolumeMounts[0].Mode).To(Equal("r"))
+					Expect(binding.VolumeMounts[0].Device.MountConfig["ro"]).To(Equal("true"))
+				})
+				Context("given that the config mask does not specify a key permutation for readonly", func() {
+					// NFS Broker/Driver run with this configuration of config mask (readonly left alone)
+
+					BeforeEach(func() {
+						delete(configMask.KeyPerms, "readonly")
+					})
+					It("should still set the mode to RO", func() {
+						var binding brokerapi.Binding
+
+						binding, err = broker.Bind(ctx, "some-instance-id", "binding-id", bindDetails)
+						Expect(err).NotTo(HaveOccurred())
+						Expect(binding.VolumeMounts[0].Mode).To(Equal("r"))
+						Expect(binding.VolumeMounts[0].Device.MountConfig["readonly"]).To(Equal("true"))
+					})
+				})
+			})
+
+			It("should write state", func() {
+				previousSaveCallCount := fakeStore.SaveCallCount()
+
+				_, err := broker.Bind(ctx, "some-instance-id", "binding-id", bindDetails)
+				Expect(err).NotTo(HaveOccurred())
+
+				Expect(fakeStore.SaveCallCount()).To(Equal(previousSaveCallCount + 1))
 			})
 
 			It("fills in the driver name", func() {

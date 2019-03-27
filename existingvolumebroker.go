@@ -240,15 +240,15 @@ func (b *Broker) Bind(context context.Context, instanceID string, bindingID stri
 		opts[k] = v
 	}
 
-	mountOpts, err := vmo.NewMountOpts(opts, b.configMask)
+	mode, err := evaluateMode(opts)
 	if err != nil {
-		logger.Error("error-generating-mount-options", err)
+		logger.Error("error-evaluating-mode", err)
 		return brokerapi.Binding{}, err
 	}
 
-	mode, err := evaluateMode(mountOpts)
+	mountOpts, err := vmo.NewMountOpts(opts, b.configMask)
 	if err != nil {
-		logger.Error("error-evaluating-mode", err)
+		logger.Error("error-generating-mount-options", err)
 		return brokerapi.Binding{}, err
 	}
 
@@ -373,7 +373,7 @@ func evaluateContainerPath(parameters map[string]interface{}, volId string) stri
 }
 
 func evaluateMode(parameters map[string]interface{}) (string, error) {
-	if ro, ok := parameters["ro"]; ok {
+	if ro, ok := parameters["readonly"]; ok {
 		roc := vmou.InterfaceToString(ro)
 		if roc == "true" {
 			return "r", nil
