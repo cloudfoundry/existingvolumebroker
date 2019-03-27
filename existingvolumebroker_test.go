@@ -415,7 +415,7 @@ var _ = Describe("Broker", func() {
 				serviceInstance := brokerstore.ServiceInstance{
 					ServiceID: serviceID,
 					ServiceFingerPrint: map[string]interface{}{
-						existingvolumebroker.SHARE_KEY: "server:/some-share",
+						existingvolumebroker.SHARE_KEY: "server/some-share",
 					},
 				}
 
@@ -438,15 +438,19 @@ var _ = Describe("Broker", func() {
 				}
 			})
 
-			It("passes `share` from create-service into `mountConfig.ip` on the bind response", func() {
+			It("passes `share` from create-service into the mount config on the bind response", func() {
 				binding, err := broker.Bind(ctx, instanceID, "binding-id", bindDetails)
 				Expect(err).NotTo(HaveOccurred())
 
 				mc := binding.VolumeMounts[0].Device.MountConfig
 
+				// for backwards compatibility the nfs flavor has to issue source strings
+				// with nfs:// prefix (otherwise the mapfsmounter wont construct the correct
+				// mount string
+				// see (https://github.com/cloudfoundry/nfsv3driver/blob/ac1e1d26fec9a8551cacfabafa6e035f233c83e0/mapfs_mounter.go#L121)
 				v, ok := mc["source"].(string)
 				Expect(ok).To(BeTrue())
-				Expect(v).To(Equal("server:/some-share"))
+				Expect(v).To(Equal("nfs://server/some-share"))
 
 				v, ok = mc["uid"].(string)
 				Expect(ok).To(BeTrue())

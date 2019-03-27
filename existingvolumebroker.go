@@ -266,6 +266,13 @@ func (b *Broker) Bind(context context.Context, instanceID string, bindingID stri
 	driverName := "smbdriver"
 	if b.isNFSBroker() {
 		driverName = "nfsv3driver"
+
+		// for backwards compatibility the nfs flavor has to issue source strings
+		// with nfs:// prefix (otherwise the mapfs-mounter wont construct the correct
+		// mount string for the kernel mount
+		//
+		// see (https://github.com/cloudfoundry/nfsv3driver/blob/ac1e1d26fec9a8551cacfabafa6e035f233c83e0/mapfs_mounter.go#L121)
+		mountOpts["source"] = fmt.Sprintf("nfs://%s", mountOpts["source"])
 	}
 
 	logger.Debug("volume-service-binding", lager.Data{"driver": driverName, "mountOpts": mountOpts})
