@@ -2,6 +2,10 @@ package existingvolumebroker_test
 
 import (
 	"bytes"
+	"context"
+	"encoding/json"
+	"errors"
+
 	"code.cloudfoundry.org/existingvolumebroker"
 	"code.cloudfoundry.org/existingvolumebroker/fakes"
 	"code.cloudfoundry.org/goshims/osshim/os_fake"
@@ -10,9 +14,6 @@ import (
 	"code.cloudfoundry.org/service-broker-store/brokerstore"
 	"code.cloudfoundry.org/service-broker-store/brokerstore/brokerstorefakes"
 	vmo "code.cloudfoundry.org/volume-mount-options"
-	"context"
-	"encoding/json"
-	"errors"
 	"github.com/pivotal-cf/brokerapi"
 
 	. "github.com/onsi/ginkgo"
@@ -40,7 +41,7 @@ var _ = Describe("Broker", func() {
 	// Pended the NFS tests until we update the nfsbbroker to use this library
 	Context("when the broker type is NFS", func() {
 		var (
-			err error
+			err        error
 			configMask vmo.MountOptsMask
 		)
 
@@ -396,7 +397,6 @@ var _ = Describe("Broker", func() {
 			})
 		})
 
-
 		Context(".Bind", func() {
 			var (
 				instanceID, serviceID string
@@ -672,6 +672,27 @@ var _ = Describe("Broker", func() {
 						Expect(ok).To(BeTrue())
 						Expect(v).To(Equal("some-instance-password"))
 					})
+				})
+			})
+
+			Context("when the service instance contains a legacy service fingerprint", func() {
+				BeforeEach(func() {
+					serviceInstance := brokerstore.ServiceInstance{
+						ServiceID:          serviceID,
+						ServiceFingerPrint: "server:/some-share",
+					}
+
+					fakeStore.RetrieveInstanceDetailsReturns(serviceInstance, nil)
+
+					bindDetails = brokerapi.BindDetails{
+						AppGUID:       "guid",
+						RawParameters: []byte(`{"uid":"1000","gid":"1000"}`),
+					}
+				})
+
+				It("should not error", func() {
+					_, err := broker.Bind(ctx, instanceID, "binding-id", bindDetails)
+					Expect(err).NotTo(HaveOccurred())
 				})
 			})
 
