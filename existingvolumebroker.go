@@ -84,9 +84,6 @@ func New(
 		DisallowedBindOverrides: []string{"share"},
 	}
 
-	// ToDo: Check error?
-	theBroker.store.Restore(logger)
-
 	return &theBroker
 }
 
@@ -119,7 +116,7 @@ func (b *Broker) Provision(context context.Context, instanceID string, details b
 		return brokerapi.ProvisionedServiceSpec{}, brokerapi.ErrRawParamsInvalid
 	}
 
-	share := uniformData(configuration[SHARE_KEY], false)
+	share := stringifyShare(configuration[SHARE_KEY])
 	if share == "" {
 		return brokerapi.ProvisionedServiceSpec{}, errors.New("config requires a \"share\" key")
 	}
@@ -404,4 +401,12 @@ func getFingerprint(rawObject interface{}) (map[string]interface{}, error) {
 		}
 		return nil, errors.New("unable to deserialize service fingerprint")
 	}
+}
+
+func stringifyShare(data interface{}) string {
+	if val, ok := data.(string); ok {
+		return val
+	}
+
+	return ""
 }
