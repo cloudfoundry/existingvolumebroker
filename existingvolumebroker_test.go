@@ -5,11 +5,11 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"github.com/onsi/gomega/gbytes"
 
 	"code.cloudfoundry.org/existingvolumebroker"
 	"code.cloudfoundry.org/existingvolumebroker/fakes"
 	"code.cloudfoundry.org/goshims/osshim/os_fake"
-	"code.cloudfoundry.org/lager"
 	"code.cloudfoundry.org/lager/lagertest"
 	"code.cloudfoundry.org/service-broker-store/brokerstore"
 	"code.cloudfoundry.org/service-broker-store/brokerstore/brokerstorefakes"
@@ -24,7 +24,7 @@ var _ = Describe("Broker", func() {
 	var (
 		broker       *existingvolumebroker.Broker
 		fakeOs       *os_fake.FakeOs
-		logger       lager.Logger
+		logger       *lagertest.TestLogger
 		ctx          context.Context
 		fakeStore    *brokerstorefakes.FakeStore
 		fakeServices *fakes.FakeServices
@@ -1651,6 +1651,14 @@ var _ = Describe("Broker", func() {
 					It("should error", func() {
 						_, err := broker.Bind(ctx, instanceID, "binding-id", bindDetails)
 						Expect(err).To(HaveOccurred())
+						Expect(err).To(MatchError("bind configuration contains the following invalid options: ['share']"))
+						Expect(err).To(BeAssignableToTypeOf(&brokerapi.FailureResponse{}))
+						Expect(err.(*brokerapi.FailureResponse).ValidatedStatusCode(nil)).To(Equal(422))
+					})
+					It("should log an error", func(){
+						_, err := broker.Bind(ctx, instanceID, "binding-id", bindDetails)
+						Expect(err).To(HaveOccurred())
+						Expect(logger.Buffer()).To(gbytes.Say("bind configuration contains the following invalid options: \\['share'\\]"))
 					})
 				})
 

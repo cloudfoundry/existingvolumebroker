@@ -226,11 +226,14 @@ func (b *Broker) Bind(context context.Context, instanceID string, bindingID stri
 
 	for k, v := range bindOpts {
 		if _, ok := opts[k]; ok {
-			// test whether it is ok to override this value
 			for _, disallowed := range b.DisallowedBindOverrides {
 				if k == disallowed {
-					logger.Error("err-override-not-allowed-in-bind", brokerapi.ErrRawParamsInvalid, lager.Data{"key": k})
-					return brokerapi.Binding{}, brokerapi.ErrRawParamsInvalid
+					err := errors.New("bind configuration contains the following invalid options: ['share']")
+					logger.Error("err-override-not-allowed-in-bind", err, lager.Data{"key": k})
+					return brokerapi.Binding{}, brokerapi.NewFailureResponse(
+						err, http.StatusUnprocessableEntity, "invalid-raw-params",
+					)
+
 				}
 			}
 		}
