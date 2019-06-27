@@ -24,8 +24,8 @@ import (
 
 const (
 	DEFAULT_CONTAINER_PATH = "/var/vcap/data"
-	EXPERIMENTAL_TAG       = "experimental"
 	SHARE_KEY              = "share"
+	SOURCE_KEY             = "source"
 	VERSION_KEY            = "version"
 )
 
@@ -81,7 +81,7 @@ func New(
 		store:                   store,
 		services:                services,
 		configMask:              configMask,
-		DisallowedBindOverrides: []string{"share", "source"},
+		DisallowedBindOverrides: []string{SHARE_KEY, SOURCE_KEY},
 	}
 
 	return &theBroker
@@ -119,6 +119,11 @@ func (b *Broker) Provision(context context.Context, instanceID string, details b
 	share := stringifyShare(configuration[SHARE_KEY])
 	if share == "" {
 		return brokerapi.ProvisionedServiceSpec{}, errors.New("config requires a \"share\" key")
+	}
+
+
+	if _, ok := configuration[SOURCE_KEY]; ok {
+		return brokerapi.ProvisionedServiceSpec{}, errors.New("create configuration contains the following invalid option: ['" + SOURCE_KEY + "']")
 	}
 
 	if b.isNFSBroker() {
@@ -270,7 +275,7 @@ func (b *Broker) Bind(context context.Context, instanceID string, bindingID stri
 		// mount string for the kernel mount
 		//
 		// see (https://github.com/cloudfoundry/nfsv3driver/blob/ac1e1d26fec9a8551cacfabafa6e035f233c83e0/mapfs_mounter.go#L121)
-		mountOpts["source"] = fmt.Sprintf("nfs://%s", mountOpts["source"])
+		mountOpts[SOURCE_KEY] = fmt.Sprintf("nfs://%s", mountOpts[SOURCE_KEY])
 	}
 
 	logger.Debug("volume-service-binding", lager.Data{"driver": driverName, "mountOpts": mountOpts})
@@ -398,7 +403,7 @@ func getFingerprint(rawObject interface{}) (map[string]interface{}, error) {
 		// legacy service instances only store the "share" key in the service fingerprint.
 		share, ok := rawObject.(string)
 		if ok {
-			return map[string]interface{}{"share": share}, nil
+			return map[string]interface{}{SHARE_KEY: share}, nil
 		}
 		return nil, errors.New("unable to deserialize service fingerprint")
 	}

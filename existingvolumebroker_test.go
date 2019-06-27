@@ -1240,6 +1240,22 @@ var _ = Describe("Broker", func() {
 				})
 			})
 
+			Context("create-service was given valid JSON with a 'source' key", func() {
+				BeforeEach(func() {
+					configuration := map[string]interface{}{"source": "server:/some-share", "share": "server:/some-share"}
+					buf := &bytes.Buffer{}
+
+					err = json.NewEncoder(buf).Encode(configuration)
+					Expect(err).NotTo(HaveOccurred())
+
+					provisionDetails = brokerapi.ProvisionDetails{PlanID: "Existing", RawParameters: json.RawMessage(buf.Bytes())}
+				})
+
+				It("errors", func() {
+					Expect(err).To(Equal(errors.New("create configuration contains the following invalid option: ['source']")))
+				})
+			})
+
 			Context("create-service was given a server share with colon after nfs directory", func() {
 				BeforeEach(func() {
 					configuration := map[string]interface{}{"share": "server/some-share:dir/"}
