@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"github.com/onsi/ginkgo/extensions/table"
 	"github.com/onsi/gomega/gbytes"
 
 	"code.cloudfoundry.org/existingvolumebroker"
@@ -1621,46 +1622,37 @@ var _ = Describe("Broker", func() {
 					Expect(mc["password"]).To(Equal("some-bind-password"))
 				})
 
-				Context("when the bind configuration overrides the share", func() {
-					BeforeEach(func() {
-						serviceInstance := brokerstore.ServiceInstance{
-							ServiceID: serviceID,
-							ServiceFingerPrint: map[string]interface{}{
-								existingvolumebroker.SHARE_KEY: "server:/some-share",
-								"domain":                       "some-instance-domain",
-								"username":                     "some-instance-username",
-								"password":                     "some-instance-password",
-							},
-						}
+				table.DescribeTable("when the bind configuration is set with a disallowed bind option", func(bindParamKeyName string) {
+					serviceInstance := brokerstore.ServiceInstance{
+						ServiceID:          serviceID,
+						ServiceFingerPrint: map[string]interface{}{},
+					}
 
-						fakeStore.RetrieveInstanceDetailsReturns(serviceInstance, nil)
+					fakeStore.RetrieveInstanceDetailsReturns(serviceInstance, nil)
 
-						bindParameters = map[string]interface{}{
-							existingvolumebroker.SHARE_KEY: "server:/some-other-share",
-						}
+					bindParameters = map[string]interface{}{
+						bindParamKeyName: "server:/some-other-share",
+					}
 
-						bindMessage, err := json.Marshal(bindParameters)
-						Expect(err).NotTo(HaveOccurred())
+					bindMessage, err := json.Marshal(bindParameters)
+					Expect(err).NotTo(HaveOccurred())
 
-						bindDetails = brokerapi.BindDetails{
-							AppGUID:       "guid",
-							RawParameters: bindMessage,
-						}
-					})
+					bindDetails = brokerapi.BindDetails{
+						AppGUID:       "guid",
+						RawParameters: bindMessage,
+					}
 
-					It("should error", func() {
-						_, err := broker.Bind(ctx, instanceID, "binding-id", bindDetails)
-						Expect(err).To(HaveOccurred())
-						Expect(err).To(MatchError("bind configuration contains the following invalid options: ['share']"))
-						Expect(err).To(BeAssignableToTypeOf(&brokerapi.FailureResponse{}))
-						Expect(err.(*brokerapi.FailureResponse).ValidatedStatusCode(nil)).To(Equal(422))
-					})
-					It("should log an error", func(){
-						_, err := broker.Bind(ctx, instanceID, "binding-id", bindDetails)
-						Expect(err).To(HaveOccurred())
-						Expect(logger.Buffer()).To(gbytes.Say("bind configuration contains the following invalid options: \\['share'\\]"))
-					})
-				})
+					_, err = broker.Bind(ctx, instanceID, "binding-id", bindDetails)
+					Expect(err).To(HaveOccurred())
+					Expect(err).To(MatchError("bind configuration contains the following invalid option: ['" + bindParamKeyName + "']"))
+					Expect(err).To(BeAssignableToTypeOf(&brokerapi.FailureResponse{}))
+					Expect(err.(*brokerapi.FailureResponse).ValidatedStatusCode(nil)).To(Equal(422))
+					Expect(logger.Buffer()).To(gbytes.Say("bind configuration contains the following invalid option: \\['" + bindParamKeyName + "'\\]"))
+
+				},
+					table.Entry("when the bind configuration overrides the source", "source"),
+					table.Entry("when the bind configuration overrides the share", "share"),
+				)
 
 				Context("when the bind configuration is empty", func() {
 					BeforeEach(func() {

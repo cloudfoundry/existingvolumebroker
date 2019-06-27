@@ -81,7 +81,7 @@ func New(
 		store:                   store,
 		services:                services,
 		configMask:              configMask,
-		DisallowedBindOverrides: []string{"share"},
+		DisallowedBindOverrides: []string{"share", "source"},
 	}
 
 	return &theBroker
@@ -225,16 +225,14 @@ func (b *Broker) Bind(context context.Context, instanceID string, bindingID stri
 	}
 
 	for k, v := range bindOpts {
-		if _, ok := opts[k]; ok {
-			for _, disallowed := range b.DisallowedBindOverrides {
-				if k == disallowed {
-					err := errors.New("bind configuration contains the following invalid options: ['share']")
-					logger.Error("err-override-not-allowed-in-bind", err, lager.Data{"key": k})
-					return brokerapi.Binding{}, brokerapi.NewFailureResponse(
-						err, http.StatusUnprocessableEntity, "invalid-raw-params",
-					)
+		for _, disallowed := range b.DisallowedBindOverrides {
+			if k == disallowed {
+				err := errors.New(fmt.Sprintf("bind configuration contains the following invalid option: ['%s']", k))
+				logger.Error("err-override-not-allowed-in-bind", err, lager.Data{"key": k})
+				return brokerapi.Binding{}, brokerapi.NewFailureResponse(
+					err, http.StatusUnprocessableEntity, "invalid-raw-params",
+				)
 
-				}
 			}
 		}
 		opts[k] = v
