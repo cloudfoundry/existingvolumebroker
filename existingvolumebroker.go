@@ -349,7 +349,12 @@ func (b *Broker) Unbind(context context.Context, instanceID string, bindingID st
 }
 
 func (b *Broker) Update(context context.Context, instanceID string, details brokerapi.UpdateDetails, asyncAllowed bool) (brokerapi.UpdateServiceSpec, error) {
-	panic("not implemented")
+	return brokerapi.UpdateServiceSpec{},
+		brokerapi.NewFailureResponse(
+			errors.New("This service does not support instance updates. Please delete your service instance and create a new one with updated configuration."),
+			422,
+			"",
+		)
 }
 
 func (b *Broker) LastOperation(_ context.Context, instanceID string, operationData string) (brokerapi.LastOperation, error) {

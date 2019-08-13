@@ -1064,6 +1064,17 @@ var _ = Describe("Broker", func() {
 				})
 			})
 		})
+
+		Context(".Update", func() {
+			It("should return a 422 status code", func() {
+				_, err := broker.Update(ctx, "", brokerapi.UpdateDetails{}, false)
+				Expect(err).To(HaveOccurred())
+				Expect(err).To(MatchError(brokerapi.NewFailureResponse(errors.New(
+					"This service does not support instance updates. Please delete your service instance and create a new one with updated configuration."),
+					422,
+					"")))
+			})
+		})
 	})
 
 	Context("when the broker type is SMB", func() {
