@@ -39,7 +39,6 @@ var _ = Describe("Broker", func() {
 		fakeServices = &fakes.FakeServices{}
 	})
 
-	// Pended the NFS tests until we update the nfsbbroker to use this library
 	Context("when the broker type is NFS", func() {
 		var (
 			err        error
