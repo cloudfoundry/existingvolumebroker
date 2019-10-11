@@ -16,7 +16,7 @@ require (
 	github.com/onsi/ginkgo v1.10.2
 	github.com/onsi/gomega v1.7.0
 	github.com/pborman/uuid v1.2.0 // indirect
-	github.com/pivotal-cf/brokerapi v6.4.2+incompatible
+	github.com/pivotal-cf/brokerapi v2.0.2+incompatible
 	github.com/pkg/errors v0.8.1 // indirect
 	github.com/tedsuo/ifrit v0.0.0-20191009134036-9a97d0632f00
 	golang.org/x/crypto v0.0.0-20191011161858-a950601f39e6 // indirect
