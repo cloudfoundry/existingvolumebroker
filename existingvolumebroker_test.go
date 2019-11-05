@@ -433,7 +433,7 @@ var _ = Describe("Broker", func() {
 				}
 			})
 
-			for i := 0; i < 10; i ++ {
+			for i := 0; i < 1000; i++ {
 				It(fmt.Sprintf("passes `share` from create-service into the mount config on the bind response. Attempt :%v", i), func() {
 					binding, err := broker.Bind(ctx, instanceID, "binding-id", bindDetails)
 					Expect(err).NotTo(HaveOccurred())
@@ -1431,7 +1431,7 @@ var _ = Describe("Broker", func() {
 				}
 			})
 
-			for i := 0; i < 10; i++ {
+			for i := 0; i < 1000; i++ {
 				It(fmt.Sprintf("passes source, username, password, uid, gid and domain from create-service into mountConfig on the bind response. Attempt: %v", i), func() {
 					binding, err := broker.Bind(ctx, instanceID, "binding-id", bindDetails)
 					Expect(err).NotTo(HaveOccurred())
