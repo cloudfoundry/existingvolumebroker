@@ -856,25 +856,6 @@ var _ = Describe("Broker", func() {
 						configMask,
 					)
 				})
-
-				Context("given allow_root=true is supplied", func() {
-					BeforeEach(func() {
-						bindParameters := map[string]interface{}{
-							existingvolumebroker.Username: "principal name",
-							existingvolumebroker.Secret:   "some keytab data",
-							"allow_root":                  true,
-						}
-
-						bindMessage, err := json.Marshal(bindParameters)
-						Expect(err).NotTo(HaveOccurred())
-						bindDetails = brokerapi.BindDetails{AppGUID: "guid", RawParameters: bindMessage}
-					})
-
-					It("should return with an error", func() {
-						_, err := broker.Bind(ctx, instanceID, "binding-id", bindDetails)
-						Expect(err).To(HaveOccurred())
-					})
-				})
 			})
 
 			Context("given allowed and default parameters are empty, except for mount default with sloppy_mount=true is supplied ", func() {
