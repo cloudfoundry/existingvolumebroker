@@ -395,7 +395,7 @@ var _ = Describe("Broker", func() {
 				bindDetails           brokerapi.BindDetails
 				bindParameters        map[string]interface{}
 
-				uid, gid string
+				uid, gid, username, password string
 				fuzzer = fuzz.New()
 			)
 
@@ -404,6 +404,8 @@ var _ = Describe("Broker", func() {
 				fuzzer.Fuzz(&serviceID)
 				fuzzer.Fuzz(&uid)
 				fuzzer.Fuzz(&gid)
+				fuzzer.Fuzz(&username)
+				fuzzer.Fuzz(&password)
 
 				serviceInstance := brokerstore.ServiceInstance{
 					ServiceID: serviceID,
@@ -416,8 +418,10 @@ var _ = Describe("Broker", func() {
 				fakeStore.RetrieveBindingDetailsReturns(brokerapi.BindDetails{}, errors.New("yar"))
 
 				bindParameters = map[string]interface{}{
-					"uid":                         uid,
-					"gid":                         gid,
+					"username": username,
+					"password": password,
+					"uid":      uid,
+					"gid":      gid,
 				}
 
 				bindMessage, err := json.Marshal(bindParameters)
@@ -443,6 +447,14 @@ var _ = Describe("Broker", func() {
 					v, ok := mc["source"].(string)
 					Expect(ok).To(BeTrue())
 					Expect(v).To(Equal("nfs://server/some-share"))
+
+					v, ok = mc["username"].(string)
+					Expect(ok).To(BeTrue())
+					Expect(v).To(Equal(username))
+
+					v, ok = mc["password"].(string)
+					Expect(ok).To(BeTrue())
+					Expect(v).To(Equal(password))
 
 					v, ok = mc["uid"].(string)
 					Expect(ok).To(BeTrue())
@@ -973,8 +985,8 @@ var _ = Describe("Broker", func() {
 
 			BeforeEach(func() {
 				bindParameters := map[string]interface{}{
-					"uid":                         "1000",
-					"gid":                         "1000",
+					"uid": "1000",
+					"gid": "1000",
 				}
 
 				bindMessage, err := json.Marshal(bindParameters)
