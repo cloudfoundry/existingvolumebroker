@@ -81,19 +81,11 @@ var _ = Describe("Broker", func() {
 					},
 				},
 			})
-
 			configMask, err = vmo.NewMountOptsMask(
 				[]string{
-					"allow_other",
-					"allow_root",
-					"default_permissions",
-					"fusenfs_gid",
-					"fusenfs_uid",
 					"gid",
 					"mount",
-					"multithread",
 					"password",
-					"sloppy_mount",
 					"source",
 					"uid",
 					"username",
@@ -101,9 +93,7 @@ var _ = Describe("Broker", func() {
 					"ro",
 					"readonly",
 				},
-				map[string]interface{}{
-					"sloppy_mount": "false",
-				},
+				map[string]interface{}{},
 				map[string]string{
 					"readonly": "ro",
 					"share":    "source",
