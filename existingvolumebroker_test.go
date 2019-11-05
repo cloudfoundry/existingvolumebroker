@@ -100,7 +100,7 @@ var _ = Describe("Broker", func() {
 					"readonly": "ro",
 					"share":    "source",
 				},
-				[]string{existingvolumebroker.Username, existingvolumebroker.Secret},
+				[]string{},
 				[]string{"source"},
 			)
 			Expect(err).NotTo(HaveOccurred())
@@ -416,8 +416,6 @@ var _ = Describe("Broker", func() {
 				fakeStore.RetrieveBindingDetailsReturns(brokerapi.BindDetails{}, errors.New("yar"))
 
 				bindParameters = map[string]interface{}{
-					existingvolumebroker.Username: "principal name",
-					existingvolumebroker.Secret:   "some keytab data",
 					"uid":                         uid,
 					"gid":                         gid,
 				}
@@ -457,19 +455,9 @@ var _ = Describe("Broker", func() {
 
 				Context(fmt.Sprintf("when binddetails contains key/values that are not allowed. Attempt: %v", i), func() {
 					BeforeEach(func() {
-						var username string
-						var password string
 						var fuzzyParams map[string]string
-
 						fuzzer = fuzzer.NumElements(5, 100).NilChance(0)
-						fuzzer.Fuzz(&username)
-						fuzzer.Fuzz(&password)
 						fuzzer.Fuzz(&fuzzyParams)
-
-						fuzzyParams[existingvolumebroker.Username] = username
-						fuzzyParams[existingvolumebroker.Secret] = password
-						fuzzyParams["uid"] = uid
-						fuzzyParams["gid"] = gid
 
 						bindMessage, err := json.Marshal(fuzzyParams)
 						Expect(err).NotTo(HaveOccurred())
@@ -922,30 +910,6 @@ var _ = Describe("Broker", func() {
 					)
 				})
 
-				Context("given allow_root=true is supplied", func() {
-					BeforeEach(func() {
-						bindParameters := map[string]interface{}{
-							existingvolumebroker.Username: "principal name",
-							existingvolumebroker.Secret:   "some keytab data",
-							"allow_root":                  true,
-						}
-
-						bindMessage, err := json.Marshal(bindParameters)
-						Expect(err).NotTo(HaveOccurred())
-
-						bindDetails = brokerapi.BindDetails{AppGUID: "guid", RawParameters: bindMessage}
-					})
-
-					It("does not pass allow_root option through", func() {
-						binding, err := broker.Bind(ctx, instanceID, "binding-id", bindDetails)
-						Expect(err).NotTo(HaveOccurred())
-
-						mc := binding.VolumeMounts[0].Device.MountConfig
-
-						_, ok := mc["allow_root"]
-						Expect(ok).To(BeFalse())
-					})
-				})
 			})
 
 			Context("given default parameters are empty, allowed parameters contain allow_root", func() {
@@ -1009,8 +973,6 @@ var _ = Describe("Broker", func() {
 
 			BeforeEach(func() {
 				bindParameters := map[string]interface{}{
-					existingvolumebroker.Username: "principal name",
-					existingvolumebroker.Secret:   "some keytab data",
 					"uid":                         "1000",
 					"gid":                         "1000",
 				}
