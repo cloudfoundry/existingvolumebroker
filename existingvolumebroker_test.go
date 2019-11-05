@@ -5,6 +5,8 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
+	fuzz "github.com/google/gofuzz"
 	"github.com/onsi/ginkgo/extensions/table"
 	"github.com/onsi/gomega/gbytes"
 
@@ -394,13 +396,14 @@ var _ = Describe("Broker", func() {
 				bindParameters        map[string]interface{}
 
 				uid, gid string
+				fuzzer = fuzz.New()
 			)
 
 			BeforeEach(func() {
-				instanceID = "some-instance-id"
-				serviceID = "some-service-id"
-				uid = "1234"
-				gid = "5678"
+				fuzzer.Fuzz(&instanceID)
+				fuzzer.Fuzz(&serviceID)
+				fuzzer.Fuzz(&uid)
+				fuzzer.Fuzz(&gid)
 
 				serviceInstance := brokerstore.ServiceInstance{
 					ServiceID: serviceID,
@@ -428,28 +431,62 @@ var _ = Describe("Broker", func() {
 				}
 			})
 
-			It("passes `share` from create-service into the mount config on the bind response", func() {
-				binding, err := broker.Bind(ctx, instanceID, "binding-id", bindDetails)
-				Expect(err).NotTo(HaveOccurred())
+			for i := 0; i < 10; i ++ {
+				It(fmt.Sprintf("passes `share` from create-service into the mount config on the bind response. Attempt :%v", i), func() {
+					binding, err := broker.Bind(ctx, instanceID, "binding-id", bindDetails)
+					Expect(err).NotTo(HaveOccurred())
 
-				mc := binding.VolumeMounts[0].Device.MountConfig
+					mc := binding.VolumeMounts[0].Device.MountConfig
 
-				// for backwards compatibility the nfs flavor has to issue source strings
-				// with nfs:// prefix (otherwise the mapfsmounter wont construct the correct
-				// mount string
-				// see (https://github.com/cloudfoundry/nfsv3driver/blob/ac1e1d26fec9a8551cacfabafa6e035f233c83e0/mapfs_mounter.go#L121)
-				v, ok := mc["source"].(string)
-				Expect(ok).To(BeTrue())
-				Expect(v).To(Equal("nfs://server/some-share"))
+					// for backwards compatibility the nfs flavor has to issue source strings
+					// with nfs:// prefix (otherwise the mapfsmounter wont construct the correct
+					// mount string
+					// see (https://github.com/cloudfoundry/nfsv3driver/blob/ac1e1d26fec9a8551cacfabafa6e035f233c83e0/mapfs_mounter.go#L121)
+					v, ok := mc["source"].(string)
+					Expect(ok).To(BeTrue())
+					Expect(v).To(Equal("nfs://server/some-share"))
 
-				v, ok = mc["uid"].(string)
-				Expect(ok).To(BeTrue())
-				Expect(v).To(Equal(uid))
+					v, ok = mc["uid"].(string)
+					Expect(ok).To(BeTrue())
+					Expect(v).To(Equal(uid))
 
-				v, ok = mc["gid"].(string)
-				Expect(ok).To(BeTrue())
-				Expect(v).To(Equal(gid))
-			})
+					v, ok = mc["gid"].(string)
+					Expect(ok).To(BeTrue())
+					Expect(v).To(Equal(gid))
+				})
+
+				Context(fmt.Sprintf("when binddetails contains key/values that are not allowed. Attempt: %v", i), func() {
+					BeforeEach(func() {
+						var username string
+						var password string
+						var fuzzyParams map[string]string
+
+						fuzzer = fuzzer.NumElements(5, 100).NilChance(0)
+						fuzzer.Fuzz(&username)
+						fuzzer.Fuzz(&password)
+						fuzzer.Fuzz(&fuzzyParams)
+
+						fuzzyParams[existingvolumebroker.Username] = username
+						fuzzyParams[existingvolumebroker.Secret] = password
+						fuzzyParams["uid"] = uid
+						fuzzyParams["gid"] = gid
+
+						bindMessage, err := json.Marshal(fuzzyParams)
+						Expect(err).NotTo(HaveOccurred())
+
+						bindDetails = brokerapi.BindDetails{
+							AppGUID:       "guid",
+							RawParameters: bindMessage,
+						}
+					})
+
+					It(fmt.Sprintf("errors with a meaningful error message Attempt: %v", i), func() {
+						_, err = broker.Bind(ctx, instanceID, "binding-id", bindDetails)
+
+						Expect(err).To(MatchError(ContainSubstring("Not allowed options")))
+					})
+				})
+			}
 
 			It("includes empty credentials to prevent CAPI crash", func() {
 				binding, err := broker.Bind(ctx, instanceID, "binding-id", bindDetails)
