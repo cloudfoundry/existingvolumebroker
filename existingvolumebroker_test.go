@@ -1069,14 +1069,11 @@ var _ = Describe("Broker", func() {
 
 			configMask, err := vmo.NewMountOptsMask(
 				[]string{
-					"dir_mode",
 					"domain",
-					"file_mode",
 					"gid",
 					"mount",
 					"password",
 					"ro",
-					"sec",
 					"source",
 					"uid",
 					"username",
