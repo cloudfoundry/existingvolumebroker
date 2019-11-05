@@ -1379,14 +1379,18 @@ var _ = Describe("Broker", func() {
 				bindDetails           brokerapi.BindDetails
 				bindParameters        map[string]interface{}
 
-				uid, gid string
+				username, password, domain, uid, gid string
+				fuzzer = fuzz.New()
 			)
 
 			BeforeEach(func() {
-				instanceID = "some-instance-id"
-				serviceID = "some-service-id"
-				uid = "1234"
-				gid = "5678"
+				fuzzer.Fuzz(&instanceID)
+				fuzzer.Fuzz(&serviceID)
+				fuzzer.Fuzz(&uid)
+				fuzzer.Fuzz(&gid)
+				fuzzer.Fuzz(&username)
+				fuzzer.Fuzz(&password)
+				fuzzer.Fuzz(&domain)
 
 				fakeStore.RetrieveInstanceDetailsStub = func(instanceID string) (brokerstore.ServiceInstance, error) {
 					return brokerstore.ServiceInstance{
@@ -1399,9 +1403,9 @@ var _ = Describe("Broker", func() {
 				fakeStore.RetrieveBindingDetailsReturns(brokerapi.BindDetails{}, errors.New("yar"))
 
 				bindParameters = map[string]interface{}{
-					"username": "some-username",
-					"password": "some-password",
-					"domain":   "some-domain",
+					"username": username,
+					"password": password,
+					"domain":   domain,
 					"uid":      uid,
 					"gid":      gid,
 				}
@@ -1415,36 +1419,60 @@ var _ = Describe("Broker", func() {
 				}
 			})
 
-			It("passes source, username, password, uid, gid and domain from create-service into mountConfig on the bind response", func() {
-				binding, err := broker.Bind(ctx, instanceID, "binding-id", bindDetails)
-				Expect(err).NotTo(HaveOccurred())
+			for i := 0; i < 10; i++ {
+				It(fmt.Sprintf("passes source, username, password, uid, gid and domain from create-service into mountConfig on the bind response. Attempt: %v", i), func() {
+					binding, err := broker.Bind(ctx, instanceID, "binding-id", bindDetails)
+					Expect(err).NotTo(HaveOccurred())
 
-				mc := binding.VolumeMounts[0].Device.MountConfig
+					mc := binding.VolumeMounts[0].Device.MountConfig
 
-				v, ok := mc["source"].(string)
-				Expect(ok).To(BeTrue())
-				Expect(v).To(Equal("server:/some-share"))
+					v, ok := mc["source"].(string)
+					Expect(ok).To(BeTrue())
+					Expect(v).To(Equal("server:/some-share"))
 
-				v, ok = mc["username"].(string)
-				Expect(ok).To(BeTrue())
-				Expect(v).To(Equal("some-username"))
+					v, ok = mc["username"].(string)
+					Expect(ok).To(BeTrue())
+					Expect(v).To(Equal(username))
 
-				v, ok = mc["password"].(string)
-				Expect(ok).To(BeTrue())
-				Expect(v).To(Equal("some-password"))
+					v, ok = mc["password"].(string)
+					Expect(ok).To(BeTrue())
+					Expect(v).To(Equal(password))
 
-				v, ok = mc["domain"].(string)
-				Expect(ok).To(BeTrue())
-				Expect(v).To(Equal("some-domain"))
+					v, ok = mc["domain"].(string)
+					Expect(ok).To(BeTrue())
+					Expect(v).To(Equal(domain))
 
-				v, ok = mc["uid"].(string)
-				Expect(ok).To(BeTrue())
-				Expect(v).To(Equal(uid))
+					v, ok = mc["uid"].(string)
+					Expect(ok).To(BeTrue())
+					Expect(v).To(Equal(uid))
 
-				v, ok = mc["gid"].(string)
-				Expect(ok).To(BeTrue())
-				Expect(v).To(Equal(gid))
-			})
+					v, ok = mc["gid"].(string)
+					Expect(ok).To(BeTrue())
+					Expect(v).To(Equal(gid))
+				})
+
+				Context(fmt.Sprintf("when binddetails contains key/values that are not allowed. Attempt: %v", i), func() {
+					BeforeEach(func() {
+						var fuzzyParams map[string]string
+						fuzzer = fuzzer.NumElements(5, 100).NilChance(0)
+						fuzzer.Fuzz(&fuzzyParams)
+
+						bindMessage, err := json.Marshal(fuzzyParams)
+						Expect(err).NotTo(HaveOccurred())
+
+						bindDetails = brokerapi.BindDetails{
+							AppGUID:       "guid",
+							RawParameters: bindMessage,
+						}
+					})
+
+					It(fmt.Sprintf("errors with a meaningful error message Attempt: %v", i), func() {
+						_, err := broker.Bind(ctx, instanceID, "binding-id", bindDetails)
+
+						Expect(err).To(MatchError(ContainSubstring("Not allowed options")))
+					})
+				})
+			}
 
 			It("includes empty credentials to prevent CAPI crash", func() {
 				binding, err := broker.Bind(ctx, instanceID, "binding-id", bindDetails)
