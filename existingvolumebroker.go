@@ -230,7 +230,7 @@ func (b *Broker) Bind(context context.Context, instanceID string, bindingID stri
 				err := errors.New(fmt.Sprintf("bind configuration contains the following invalid option: ['%s']", k))
 				logger.Error("err-override-not-allowed-in-bind", err, lager.Data{"key": k})
 				return brokerapi.Binding{}, brokerapi.NewFailureResponse(
-					err, http.StatusUnprocessableEntity, "invalid-raw-params",
+					err, http.StatusBadRequest, "invalid-raw-params",
 				)
 
 			}

@@ -1688,7 +1688,7 @@ var _ = Describe("Broker", func() {
 					Expect(err).To(HaveOccurred())
 					Expect(err).To(MatchError("bind configuration contains the following invalid option: ['" + bindParamKeyName + "']"))
 					Expect(err).To(BeAssignableToTypeOf(&brokerapi.FailureResponse{}))
-					Expect(err.(*brokerapi.FailureResponse).ValidatedStatusCode(nil)).To(Equal(422))
+					Expect(err.(*brokerapi.FailureResponse).ValidatedStatusCode(nil)).To(Equal(400))
 					Expect(logger.Buffer()).To(gbytes.Say("bind configuration contains the following invalid option: \\['" + bindParamKeyName + "'\\]"))
 
 				},
