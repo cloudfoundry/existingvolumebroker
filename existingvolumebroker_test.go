@@ -2,14 +2,6 @@ package existingvolumebroker_test
 
 import (
 	"bytes"
-	"context"
-	"encoding/json"
-	"errors"
-	"fmt"
-	fuzz "github.com/google/gofuzz"
-	"github.com/onsi/ginkgo/extensions/table"
-	"github.com/onsi/gomega/gbytes"
-
 	"code.cloudfoundry.org/existingvolumebroker"
 	"code.cloudfoundry.org/existingvolumebroker/fakes"
 	"code.cloudfoundry.org/goshims/osshim/os_fake"
@@ -17,11 +9,21 @@ import (
 	"code.cloudfoundry.org/service-broker-store/brokerstore"
 	"code.cloudfoundry.org/service-broker-store/brokerstore/brokerstorefakes"
 	vmo "code.cloudfoundry.org/volume-mount-options"
+	"code.cloudfoundry.org/volume-mount-options/volume-mount-optionsfakes"
+	"context"
+	"encoding/json"
+	"errors"
+	"fmt"
+	fuzz "github.com/google/gofuzz"
+	"github.com/onsi/ginkgo/extensions/table"
+	"github.com/onsi/gomega/gbytes"
 	"github.com/pivotal-cf/brokerapi"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 )
+
+//go:generate counterfeiter -o ./fakes/fake_user_opts_validation.go ./vendor/code.cloudfoundry.org/volume-mount-options UserOptsValidation
 
 var _ = Describe("Broker", func() {
 	var (
@@ -45,9 +47,11 @@ var _ = Describe("Broker", func() {
 		var (
 			err        error
 			configMask vmo.MountOptsMask
+			userValidationFunc *volumemountoptionsfakes.FakeUserOptsValidation
 		)
 
 		BeforeEach(func() {
+			userValidationFunc = &volumemountoptionsfakes.FakeUserOptsValidation{}
 			fakeServices.ListReturns([]brokerapi.Service{
 				{
 					ID:            "nfs-service-id",
@@ -102,6 +106,7 @@ var _ = Describe("Broker", func() {
 				},
 				[]string{},
 				[]string{"source"},
+				userValidationFunc,
 			)
 			Expect(err).NotTo(HaveOccurred())
 
@@ -534,6 +539,41 @@ var _ = Describe("Broker", func() {
 				Expect(err).To(MatchError(`Invalid ro parameter value: ""`))
 			})
 
+			It("should write state", func() {
+				previousSaveCallCount := fakeStore.SaveCallCount()
+
+				_, err := broker.Bind(ctx, "some-instance-id", "binding-id", bindDetails)
+				Expect(err).NotTo(HaveOccurred())
+
+				Expect(fakeStore.SaveCallCount()).To(Equal(previousSaveCallCount + 1))
+			})
+
+			It("fills in the driver name", func() {
+				binding, err := broker.Bind(ctx, "some-instance-id", "binding-id", bindDetails)
+				Expect(err).NotTo(HaveOccurred())
+
+				Expect(binding.VolumeMounts[0].Driver).To(Equal("nfsv3driver"))
+			})
+
+			It("fills in the volume ID", func() {
+				binding, err := broker.Bind(ctx, "some-instance-id", "binding-id", bindDetails)
+				Expect(err).NotTo(HaveOccurred())
+
+				Expect(binding.VolumeMounts[0].Device.VolumeId).To(ContainSubstring("some-instance-id"))
+			})
+
+			It("errors when the service instance does not exist", func() {
+				fakeStore.RetrieveInstanceDetailsReturns(brokerstore.ServiceInstance{}, errors.New("Awesome!"))
+
+				_, err := broker.Bind(ctx, "nonexistent-instance-id", "binding-id", brokerapi.BindDetails{AppGUID: "guid"})
+				Expect(err).To(Equal(brokerapi.ErrInstanceDoesNotExist))
+			})
+
+			It("errors when the app guid is not provided", func() {
+				_, err := broker.Bind(ctx, "some-instance-id", "binding-id", brokerapi.BindDetails{})
+				Expect(err).To(Equal(brokerapi.ErrAppGuidNotProvided))
+			})
+
 			Context("given readonly is specified", func() {
 				BeforeEach(func() {
 					bindParameters["readonly"] = true
@@ -565,29 +605,6 @@ var _ = Describe("Broker", func() {
 						Expect(binding.VolumeMounts[0].Device.MountConfig["readonly"]).To(Equal("true"))
 					})
 				})
-			})
-
-			It("should write state", func() {
-				previousSaveCallCount := fakeStore.SaveCallCount()
-
-				_, err := broker.Bind(ctx, "some-instance-id", "binding-id", bindDetails)
-				Expect(err).NotTo(HaveOccurred())
-
-				Expect(fakeStore.SaveCallCount()).To(Equal(previousSaveCallCount + 1))
-			})
-
-			It("fills in the driver name", func() {
-				binding, err := broker.Bind(ctx, "some-instance-id", "binding-id", bindDetails)
-				Expect(err).NotTo(HaveOccurred())
-
-				Expect(binding.VolumeMounts[0].Driver).To(Equal("nfsv3driver"))
-			})
-
-			It("fills in the volume ID", func() {
-				binding, err := broker.Bind(ctx, "some-instance-id", "binding-id", bindDetails)
-				Expect(err).NotTo(HaveOccurred())
-
-				Expect(binding.VolumeMounts[0].Device.VolumeId).To(ContainSubstring("some-instance-id"))
 			})
 
 			Context("when the service instance contains uid and gid", func() {
@@ -855,18 +872,6 @@ var _ = Describe("Broker", func() {
 				It("should error", func() {
 					Expect(err).To(HaveOccurred())
 				})
-			})
-
-			It("errors when the service instance does not exist", func() {
-				fakeStore.RetrieveInstanceDetailsReturns(brokerstore.ServiceInstance{}, errors.New("Awesome!"))
-
-				_, err := broker.Bind(ctx, "nonexistent-instance-id", "binding-id", brokerapi.BindDetails{AppGUID: "guid"})
-				Expect(err).To(Equal(brokerapi.ErrInstanceDoesNotExist))
-			})
-
-			It("errors when the app guid is not provided", func() {
-				_, err := broker.Bind(ctx, "some-instance-id", "binding-id", brokerapi.BindDetails{})
-				Expect(err).To(Equal(brokerapi.ErrAppGuidNotProvided))
 			})
 
 			Context("given allowed and default parameters are empty", func() {

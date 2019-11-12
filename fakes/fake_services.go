@@ -11,8 +11,9 @@ import (
 type FakeServices struct {
 	ListStub        func() []brokerapi.Service
 	listMutex       sync.RWMutex
-	listArgsForCall []struct{}
-	listReturns     struct {
+	listArgsForCall []struct {
+	}
+	listReturns struct {
 		result1 []brokerapi.Service
 	}
 	listReturnsOnCall map[int]struct {
@@ -25,7 +26,8 @@ type FakeServices struct {
 func (fake *FakeServices) List() []brokerapi.Service {
 	fake.listMutex.Lock()
 	ret, specificReturn := fake.listReturnsOnCall[len(fake.listArgsForCall)]
-	fake.listArgsForCall = append(fake.listArgsForCall, struct{}{})
+	fake.listArgsForCall = append(fake.listArgsForCall, struct {
+	}{})
 	fake.recordInvocation("List", []interface{}{})
 	fake.listMutex.Unlock()
 	if fake.ListStub != nil {
@@ -34,7 +36,8 @@ func (fake *FakeServices) List() []brokerapi.Service {
 	if specificReturn {
 		return ret.result1
 	}
-	return fake.listReturns.result1
+	fakeReturns := fake.listReturns
+	return fakeReturns.result1
 }
 
 func (fake *FakeServices) ListCallCount() int {
@@ -43,7 +46,15 @@ func (fake *FakeServices) ListCallCount() int {
 	return len(fake.listArgsForCall)
 }
 
+func (fake *FakeServices) ListCalls(stub func() []brokerapi.Service) {
+	fake.listMutex.Lock()
+	defer fake.listMutex.Unlock()
+	fake.ListStub = stub
+}
+
 func (fake *FakeServices) ListReturns(result1 []brokerapi.Service) {
+	fake.listMutex.Lock()
+	defer fake.listMutex.Unlock()
 	fake.ListStub = nil
 	fake.listReturns = struct {
 		result1 []brokerapi.Service
@@ -51,6 +62,8 @@ func (fake *FakeServices) ListReturns(result1 []brokerapi.Service) {
 }
 
 func (fake *FakeServices) ListReturnsOnCall(i int, result1 []brokerapi.Service) {
+	fake.listMutex.Lock()
+	defer fake.listMutex.Unlock()
 	fake.ListStub = nil
 	if fake.listReturnsOnCall == nil {
 		fake.listReturnsOnCall = make(map[int]struct {
