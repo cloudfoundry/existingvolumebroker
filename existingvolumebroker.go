@@ -247,7 +247,7 @@ func (b *Broker) Bind(context context.Context, instanceID string, bindingID stri
 	mountOpts, err := vmo.NewMountOpts(opts, b.configMask)
 	if err != nil {
 		logger.Error("error-generating-mount-options", err)
-		return brokerapi.Binding{}, err
+		return brokerapi.Binding{}, brokerapi.NewFailureResponse(err, http.StatusBadRequest, "invalid-params")
 	}
 
 	if b.bindingConflicts(bindingID, bindDetails) {

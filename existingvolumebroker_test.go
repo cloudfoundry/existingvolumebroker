@@ -45,8 +45,8 @@ var _ = Describe("Broker", func() {
 
 	Context("when the broker type is NFS", func() {
 		var (
-			err        error
-			configMask vmo.MountOptsMask
+			err                error
+			configMask         vmo.MountOptsMask
 			userValidationFunc *volumemountoptionsfakes.FakeUserOptsValidation
 		)
 
@@ -401,7 +401,7 @@ var _ = Describe("Broker", func() {
 				bindParameters        map[string]interface{}
 
 				uid, gid, username, password string
-				fuzzer = fuzz.New()
+				fuzzer                       = fuzz.New()
 			)
 
 			BeforeEach(func() {
@@ -487,6 +487,10 @@ var _ = Describe("Broker", func() {
 
 					It(fmt.Sprintf("errors with a meaningful error message Attempt: %v", i), func() {
 						_, err = broker.Bind(ctx, instanceID, "binding-id", bindDetails)
+
+						Expect(err).To(BeAssignableToTypeOf(&brokerapi.FailureResponse{}))
+						Expect(err.(*brokerapi.FailureResponse).ValidatedStatusCode(nil)).To(Equal(400))
+						Expect(err.(*brokerapi.FailureResponse).LoggerAction()).To(Equal("invalid-params"))
 
 						Expect(err).To(MatchError(ContainSubstring("Not allowed options")))
 					})
@@ -1397,7 +1401,7 @@ var _ = Describe("Broker", func() {
 				bindParameters        map[string]interface{}
 
 				username, password, domain, uid, gid string
-				fuzzer = fuzz.New()
+				fuzzer                               = fuzz.New()
 			)
 
 			BeforeEach(func() {
