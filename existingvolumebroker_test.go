@@ -17,7 +17,8 @@ import (
 	fuzz "github.com/google/gofuzz"
 	"github.com/onsi/ginkgo/extensions/table"
 	"github.com/onsi/gomega/gbytes"
-	"github.com/pivotal-cf/brokerapi"
+	"github.com/pivotal-cf/brokerapi/domain"
+	"github.com/pivotal-cf/brokerapi/domain/apiresponses"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -27,7 +28,7 @@ import (
 
 var _ = Describe("Broker", func() {
 	var (
-		broker       *existingvolumebroker.Broker
+		broker       domain.ServiceBroker
 		fakeOs       *os_fake.FakeOs
 		logger       *lagertest.TestLogger
 		ctx          context.Context
@@ -52,7 +53,7 @@ var _ = Describe("Broker", func() {
 
 		BeforeEach(func() {
 			userValidationFunc = &volumemountoptionsfakes.FakeUserOptsValidation{}
-			fakeServices.ListReturns([]brokerapi.Service{
+			fakeServices.ListReturns([]domain.Service{
 				{
 					ID:            "nfs-service-id",
 					Name:          "nfs",
@@ -60,8 +61,8 @@ var _ = Describe("Broker", func() {
 					Bindable:      true,
 					PlanUpdatable: false,
 					Tags:          []string{"nfs"},
-					Requires:      []brokerapi.RequiredPermission{"volume_mount"},
-					Plans: []brokerapi.ServicePlan{
+					Requires:      []domain.RequiredPermission{"volume_mount"},
+					Plans: []domain.ServicePlan{
 						{
 							Name:        "Existing",
 							ID:          "Existing",
@@ -76,9 +77,9 @@ var _ = Describe("Broker", func() {
 					Bindable:      true,
 					PlanUpdatable: false,
 					Tags:          []string{"nfs", "experimental"},
-					Requires:      []brokerapi.RequiredPermission{"volume_mount"},
+					Requires:      []domain.RequiredPermission{"volume_mount"},
 
-					Plans: []brokerapi.ServicePlan{
+					Plans: []domain.ServicePlan{
 						{
 							Name:        "Existing",
 							ID:          "Existing",
@@ -135,7 +136,7 @@ var _ = Describe("Broker", func() {
 				Expect(result.Bindable).To(Equal(true))
 				Expect(result.PlanUpdatable).To(Equal(false))
 				Expect(result.Tags).To(ConsistOf([]string{"nfs"}))
-				Expect(result.Requires).To(ContainElement(brokerapi.RequiredPermission("volume_mount")))
+				Expect(result.Requires).To(ContainElement(domain.RequiredPermission("volume_mount")))
 
 				Expect(result.Plans[0].Name).To(Equal("Existing"))
 				Expect(result.Plans[0].ID).To(Equal("Existing"))
@@ -145,17 +146,17 @@ var _ = Describe("Broker", func() {
 				Expect(result.ID).To(Equal("nfs-experimental-service-id"))
 				Expect(result.Name).To(Equal("nfs-experimental"))
 				Expect(result.Tags).To(ConsistOf([]string{"nfs", "experimental"}))
-				Expect(result.Requires).To(ContainElement(brokerapi.RequiredPermission("volume_mount")))
+				Expect(result.Requires).To(ContainElement(domain.RequiredPermission("volume_mount")))
 			})
 		})
 
 		Context(".Provision", func() {
 			var (
 				instanceID       string
-				provisionDetails brokerapi.ProvisionDetails
+				provisionDetails domain.ProvisionDetails
 				asyncAllowed     bool
 
-				spec brokerapi.ProvisionedServiceSpec
+				spec domain.ProvisionedServiceSpec
 				err  error
 			)
 
@@ -168,7 +169,7 @@ var _ = Describe("Broker", func() {
 				err = json.NewEncoder(buf).Encode(configuration)
 				Expect(err).NotTo(HaveOccurred())
 
-				provisionDetails = brokerapi.ProvisionDetails{PlanID: "Existing", RawParameters: json.RawMessage(buf.Bytes())}
+				provisionDetails = domain.ProvisionDetails{PlanID: "Existing", RawParameters: json.RawMessage(buf.Bytes())}
 				asyncAllowed = false
 				fakeStore.RetrieveInstanceDetailsReturns(brokerstore.ServiceInstance{}, errors.New("not found"))
 			})
@@ -197,7 +198,7 @@ var _ = Describe("Broker", func() {
 					err = json.NewEncoder(buf).Encode(configuration)
 					Expect(err).NotTo(HaveOccurred())
 
-					provisionDetails = brokerapi.ProvisionDetails{PlanID: "Existing", RawParameters: json.RawMessage(buf.Bytes())}
+					provisionDetails = domain.ProvisionDetails{PlanID: "Existing", RawParameters: json.RawMessage(buf.Bytes())}
 				})
 
 				It("should write uid and gid into state", func() {
@@ -216,11 +217,11 @@ var _ = Describe("Broker", func() {
 			Context("create-service was given invalid JSON", func() {
 				BeforeEach(func() {
 					badJson := []byte("{this is not json")
-					provisionDetails = brokerapi.ProvisionDetails{PlanID: "Existing", RawParameters: json.RawMessage(badJson)}
+					provisionDetails = domain.ProvisionDetails{PlanID: "Existing", RawParameters: json.RawMessage(badJson)}
 				})
 
 				It("errors", func() {
-					Expect(err).To(Equal(brokerapi.ErrRawParamsInvalid))
+					Expect(err).To(Equal(apiresponses.ErrRawParamsInvalid))
 				})
 
 			})
@@ -233,7 +234,7 @@ var _ = Describe("Broker", func() {
 					err = json.NewEncoder(buf).Encode(configuration)
 					Expect(err).NotTo(HaveOccurred())
 
-					provisionDetails = brokerapi.ProvisionDetails{PlanID: "Existing", RawParameters: json.RawMessage(buf.Bytes())}
+					provisionDetails = domain.ProvisionDetails{PlanID: "Existing", RawParameters: json.RawMessage(buf.Bytes())}
 				})
 
 				It("errors", func() {
@@ -246,7 +247,7 @@ var _ = Describe("Broker", func() {
 					configuration := map[string]interface{}{"share": "server:/some-share"}
 					buf := &bytes.Buffer{}
 					_ = json.NewEncoder(buf).Encode(configuration)
-					provisionDetails = brokerapi.ProvisionDetails{PlanID: "Existing", RawParameters: json.RawMessage(buf.Bytes())}
+					provisionDetails = domain.ProvisionDetails{PlanID: "Existing", RawParameters: json.RawMessage(buf.Bytes())}
 				})
 
 				It("errors", func() {
@@ -262,7 +263,7 @@ var _ = Describe("Broker", func() {
 					err = json.NewEncoder(buf).Encode(configuration)
 					Expect(err).NotTo(HaveOccurred())
 
-					provisionDetails = brokerapi.ProvisionDetails{PlanID: "Existing", RawParameters: json.RawMessage(buf.Bytes())}
+					provisionDetails = domain.ProvisionDetails{PlanID: "Existing", RawParameters: json.RawMessage(buf.Bytes())}
 				})
 
 				It("should not error", func() {
@@ -286,7 +287,7 @@ var _ = Describe("Broker", func() {
 				})
 
 				It("should error", func() {
-					Expect(err).To(Equal(brokerapi.ErrInstanceAlreadyExists))
+					Expect(err).To(Equal(apiresponses.ErrInstanceAlreadyExists))
 				})
 			})
 
@@ -324,17 +325,17 @@ var _ = Describe("Broker", func() {
 			})
 
 			JustBeforeEach(func() {
-				_, err = broker.Deprovision(ctx, instanceID, brokerapi.DeprovisionDetails{}, asyncAllowed)
+				_, err = broker.Deprovision(ctx, instanceID, domain.DeprovisionDetails{}, asyncAllowed)
 			})
 
 			Context("when the instance does not exist", func() {
 				BeforeEach(func() {
 					instanceID = "does-not-exist"
-					fakeStore.RetrieveInstanceDetailsReturns(brokerstore.ServiceInstance{}, brokerapi.ErrInstanceDoesNotExist)
+					fakeStore.RetrieveInstanceDetailsReturns(brokerstore.ServiceInstance{}, apiresponses.ErrInstanceDoesNotExist)
 				})
 
 				It("should fail", func() {
-					Expect(err).To(Equal(brokerapi.ErrInstanceDoesNotExist))
+					Expect(err).To(Equal(apiresponses.ErrInstanceDoesNotExist))
 				})
 			})
 
@@ -389,7 +390,7 @@ var _ = Describe("Broker", func() {
 
 		Context(".LastOperation", func() {
 			It("errors", func() {
-				_, err := broker.LastOperation(ctx, "non-existant", "provision")
+				_, err := broker.LastOperation(ctx, "non-existant", domain.PollDetails{OperationData: "provision"})
 				Expect(err).To(HaveOccurred())
 			})
 		})
@@ -397,7 +398,7 @@ var _ = Describe("Broker", func() {
 		Context(".Bind", func() {
 			var (
 				instanceID, serviceID string
-				bindDetails           brokerapi.BindDetails
+				bindDetails           domain.BindDetails
 				bindParameters        map[string]interface{}
 
 				uid, gid, username, password string
@@ -420,7 +421,7 @@ var _ = Describe("Broker", func() {
 				}
 
 				fakeStore.RetrieveInstanceDetailsReturns(serviceInstance, nil)
-				fakeStore.RetrieveBindingDetailsReturns(brokerapi.BindDetails{}, errors.New("yar"))
+				fakeStore.RetrieveBindingDetailsReturns(domain.BindDetails{}, errors.New("yar"))
 
 				bindParameters = map[string]interface{}{
 					"username": username,
@@ -432,7 +433,7 @@ var _ = Describe("Broker", func() {
 				bindMessage, err := json.Marshal(bindParameters)
 				Expect(err).NotTo(HaveOccurred())
 
-				bindDetails = brokerapi.BindDetails{
+				bindDetails = domain.BindDetails{
 					AppGUID:       "guid",
 					RawParameters: bindMessage,
 				}
@@ -440,7 +441,7 @@ var _ = Describe("Broker", func() {
 
 			for i := 0; i < 1000; i++ {
 				It(fmt.Sprintf("passes `share` from create-service into the mount config on the bind response. Attempt :%v", i), func() {
-					binding, err := broker.Bind(ctx, instanceID, "binding-id", bindDetails)
+					binding, err := broker.Bind(ctx, instanceID, "binding-id", bindDetails, false)
 					Expect(err).NotTo(HaveOccurred())
 
 					mc := binding.VolumeMounts[0].Device.MountConfig
@@ -479,18 +480,18 @@ var _ = Describe("Broker", func() {
 						bindMessage, err := json.Marshal(fuzzyParams)
 						Expect(err).NotTo(HaveOccurred())
 
-						bindDetails = brokerapi.BindDetails{
+						bindDetails = domain.BindDetails{
 							AppGUID:       "guid",
 							RawParameters: bindMessage,
 						}
 					})
 
 					It(fmt.Sprintf("errors with a meaningful error message Attempt: %v", i), func() {
-						_, err = broker.Bind(ctx, instanceID, "binding-id", bindDetails)
+						_, err = broker.Bind(ctx, instanceID, "binding-id", bindDetails, false)
 
-						Expect(err).To(BeAssignableToTypeOf(&brokerapi.FailureResponse{}))
-						Expect(err.(*brokerapi.FailureResponse).ValidatedStatusCode(nil)).To(Equal(400))
-						Expect(err.(*brokerapi.FailureResponse).LoggerAction()).To(Equal("invalid-params"))
+						Expect(err).To(BeAssignableToTypeOf(&apiresponses.FailureResponse{}))
+						Expect(err.(*apiresponses.FailureResponse).ValidatedStatusCode(nil)).To(Equal(400))
+						Expect(err.(*apiresponses.FailureResponse).LoggerAction()).To(Equal("invalid-params"))
 
 						Expect(err).To(MatchError(ContainSubstring("Not allowed options")))
 					})
@@ -498,14 +499,14 @@ var _ = Describe("Broker", func() {
 			}
 
 			It("includes empty credentials to prevent CAPI crash", func() {
-				binding, err := broker.Bind(ctx, instanceID, "binding-id", bindDetails)
+				binding, err := broker.Bind(ctx, instanceID, "binding-id", bindDetails, false)
 				Expect(err).NotTo(HaveOccurred())
 
 				Expect(binding.Credentials).NotTo(BeNil())
 			})
 
 			It("uses the instance ID in the default container path", func() {
-				binding, err := broker.Bind(ctx, "some-instance-id", "binding-id", bindDetails)
+				binding, err := broker.Bind(ctx, "some-instance-id", "binding-id", bindDetails, false)
 				Expect(err).NotTo(HaveOccurred())
 
 				Expect(binding.VolumeMounts[0].ContainerDir).To(Equal("/var/vcap/data/some-instance-id"))
@@ -519,14 +520,14 @@ var _ = Describe("Broker", func() {
 				bindDetails.RawParameters, err = json.Marshal(bindParameters)
 				Expect(err).NotTo(HaveOccurred())
 
-				binding, err := broker.Bind(ctx, "some-instance-id", "binding-id", bindDetails)
+				binding, err := broker.Bind(ctx, "some-instance-id", "binding-id", bindDetails, false)
 				Expect(err).NotTo(HaveOccurred())
 
 				Expect(binding.VolumeMounts[0].ContainerDir).To(Equal("/var/vcap/otherdir/something"))
 			})
 
 			It("uses rw as its default mode", func() {
-				binding, err := broker.Bind(ctx, "some-instance-id", "binding-id", bindDetails)
+				binding, err := broker.Bind(ctx, "some-instance-id", "binding-id", bindDetails, false)
 				Expect(err).NotTo(HaveOccurred())
 
 				Expect(binding.VolumeMounts[0].Mode).To(Equal("rw"))
@@ -539,28 +540,28 @@ var _ = Describe("Broker", func() {
 				bindDetails.RawParameters, err = json.Marshal(bindParameters)
 				Expect(err).NotTo(HaveOccurred())
 
-				_, err = broker.Bind(ctx, "some-instance-id", "binding-id", bindDetails)
+				_, err = broker.Bind(ctx, "some-instance-id", "binding-id", bindDetails, false)
 				Expect(err).To(MatchError(`Invalid ro parameter value: ""`))
 			})
 
 			It("should write state", func() {
 				previousSaveCallCount := fakeStore.SaveCallCount()
 
-				_, err := broker.Bind(ctx, "some-instance-id", "binding-id", bindDetails)
+				_, err := broker.Bind(ctx, "some-instance-id", "binding-id", bindDetails, false)
 				Expect(err).NotTo(HaveOccurred())
 
 				Expect(fakeStore.SaveCallCount()).To(Equal(previousSaveCallCount + 1))
 			})
 
 			It("fills in the driver name", func() {
-				binding, err := broker.Bind(ctx, "some-instance-id", "binding-id", bindDetails)
+				binding, err := broker.Bind(ctx, "some-instance-id", "binding-id", bindDetails, false)
 				Expect(err).NotTo(HaveOccurred())
 
 				Expect(binding.VolumeMounts[0].Driver).To(Equal("nfsv3driver"))
 			})
 
 			It("fills in the volume ID", func() {
-				binding, err := broker.Bind(ctx, "some-instance-id", "binding-id", bindDetails)
+				binding, err := broker.Bind(ctx, "some-instance-id", "binding-id", bindDetails, false)
 				Expect(err).NotTo(HaveOccurred())
 
 				Expect(binding.VolumeMounts[0].Device.VolumeId).To(ContainSubstring("some-instance-id"))
@@ -569,13 +570,13 @@ var _ = Describe("Broker", func() {
 			It("errors when the service instance does not exist", func() {
 				fakeStore.RetrieveInstanceDetailsReturns(brokerstore.ServiceInstance{}, errors.New("Awesome!"))
 
-				_, err := broker.Bind(ctx, "nonexistent-instance-id", "binding-id", brokerapi.BindDetails{AppGUID: "guid"})
-				Expect(err).To(Equal(brokerapi.ErrInstanceDoesNotExist))
+				_, err := broker.Bind(ctx, "nonexistent-instance-id", "binding-id", domain.BindDetails{AppGUID: "guid"}, false)
+				Expect(err).To(Equal(apiresponses.ErrInstanceDoesNotExist))
 			})
 
 			It("errors when the app guid is not provided", func() {
-				_, err := broker.Bind(ctx, "some-instance-id", "binding-id", brokerapi.BindDetails{})
-				Expect(err).To(Equal(brokerapi.ErrAppGuidNotProvided))
+				_, err := broker.Bind(ctx, "some-instance-id", "binding-id", domain.BindDetails{}, false)
+				Expect(err).To(Equal(apiresponses.ErrAppGuidNotProvided))
 			})
 
 			Context("given readonly is specified", func() {
@@ -587,9 +588,9 @@ var _ = Describe("Broker", func() {
 				It("should set the mode to RO and the mount config readonly flag to true", func() {
 					// SMB Broker/Driver run with this configuration of config mask (readonly canonicalized to ro)
 
-					var binding brokerapi.Binding
+					var binding domain.Binding
 
-					binding, err = broker.Bind(ctx, "some-instance-id", "binding-id", bindDetails)
+					binding, err = broker.Bind(ctx, "some-instance-id", "binding-id", bindDetails, false)
 					Expect(err).NotTo(HaveOccurred())
 					Expect(binding.VolumeMounts[0].Mode).To(Equal("r"))
 					Expect(binding.VolumeMounts[0].Device.MountConfig["ro"]).To(Equal("true"))
@@ -601,9 +602,9 @@ var _ = Describe("Broker", func() {
 						delete(configMask.KeyPerms, "readonly")
 					})
 					It("should still set the mode to RO", func() {
-						var binding brokerapi.Binding
+						var binding domain.Binding
 
-						binding, err = broker.Bind(ctx, "some-instance-id", "binding-id", bindDetails)
+						binding, err = broker.Bind(ctx, "some-instance-id", "binding-id", bindDetails, false)
 						Expect(err).NotTo(HaveOccurred())
 						Expect(binding.VolumeMounts[0].Mode).To(Equal("r"))
 						Expect(binding.VolumeMounts[0].Device.MountConfig["readonly"]).To(Equal("true"))
@@ -626,7 +627,7 @@ var _ = Describe("Broker", func() {
 				})
 
 				It("should favor the values in the bind configuration", func() {
-					binding, err := broker.Bind(ctx, instanceID, "binding-id", bindDetails)
+					binding, err := broker.Bind(ctx, instanceID, "binding-id", bindDetails, false)
 					Expect(err).NotTo(HaveOccurred())
 
 					mc := binding.VolumeMounts[0].Device.MountConfig
@@ -642,14 +643,14 @@ var _ = Describe("Broker", func() {
 
 				Context("when the bind operation doesn't pass configuration", func() {
 					BeforeEach(func() {
-						bindDetails = brokerapi.BindDetails{
+						bindDetails = domain.BindDetails{
 							AppGUID:       "guid",
 							RawParameters: []byte(""),
 						}
 					})
 
 					It("should use uid and gid from the service instance configuration", func() {
-						binding, err := broker.Bind(ctx, "some-instance-id", "binding-id", bindDetails)
+						binding, err := broker.Bind(ctx, "some-instance-id", "binding-id", bindDetails, false)
 						Expect(err).NotTo(HaveOccurred())
 
 						mc := binding.VolumeMounts[0].Device.MountConfig
@@ -678,14 +679,14 @@ var _ = Describe("Broker", func() {
 
 					fakeStore.RetrieveInstanceDetailsReturns(serviceInstance, nil)
 
-					bindDetails = brokerapi.BindDetails{
+					bindDetails = domain.BindDetails{
 						AppGUID:       "guid",
 						RawParameters: []byte(`{"username":"some-bind-username","password":"some-bind-password"}`),
 					}
 				})
 
 				It("should favor the values in the bind configuration", func() {
-					binding, err := broker.Bind(ctx, instanceID, "binding-id", bindDetails)
+					binding, err := broker.Bind(ctx, instanceID, "binding-id", bindDetails, false)
 					Expect(err).NotTo(HaveOccurred())
 
 					mc := binding.VolumeMounts[0].Device.MountConfig
@@ -701,14 +702,14 @@ var _ = Describe("Broker", func() {
 
 				Context("when the bind operation doesn't pass configuration", func() {
 					BeforeEach(func() {
-						bindDetails = brokerapi.BindDetails{
+						bindDetails = domain.BindDetails{
 							AppGUID:       "guid",
 							RawParameters: []byte(""),
 						}
 					})
 
 					It("should use uid and gid from the service instance configuration", func() {
-						binding, err := broker.Bind(ctx, "some-instance-id", "binding-id", bindDetails)
+						binding, err := broker.Bind(ctx, "some-instance-id", "binding-id", bindDetails, false)
 						Expect(err).NotTo(HaveOccurred())
 						mc := binding.VolumeMounts[0].Device.MountConfig
 
@@ -732,42 +733,42 @@ var _ = Describe("Broker", func() {
 
 					fakeStore.RetrieveInstanceDetailsReturns(serviceInstance, nil)
 
-					bindDetails = brokerapi.BindDetails{
+					bindDetails = domain.BindDetails{
 						AppGUID:       "guid",
 						RawParameters: []byte(`{"uid":"1000","gid":"1000"}`),
 					}
 				})
 
 				It("should not error", func() {
-					_, err := broker.Bind(ctx, instanceID, "binding-id", bindDetails)
+					_, err := broker.Bind(ctx, instanceID, "binding-id", bindDetails, false)
 					Expect(err).NotTo(HaveOccurred())
 				})
 			})
 
 			Context("when the bind operation doesn't pass configuration", func() {
 				BeforeEach(func() {
-					bindDetails = brokerapi.BindDetails{
+					bindDetails = domain.BindDetails{
 						AppGUID:       "guid",
 						RawParameters: []byte(""),
 					}
 				})
 
 				It("should succeed", func() {
-					_, err := broker.Bind(ctx, "some-instance-id", "binding-id", bindDetails)
+					_, err := broker.Bind(ctx, "some-instance-id", "binding-id", bindDetails, false)
 					Expect(err).NotTo(HaveOccurred())
 				})
 			})
 
 			Context("when the bind operation passes empty configuration", func() {
 				BeforeEach(func() {
-					bindDetails = brokerapi.BindDetails{
+					bindDetails = domain.BindDetails{
 						AppGUID:       "guid",
 						RawParameters: []byte("{}"),
 					}
 				})
 
 				It("should succeed", func() {
-					_, err := broker.Bind(ctx, "some-instance-id", "binding-id", bindDetails)
+					_, err := broker.Bind(ctx, "some-instance-id", "binding-id", bindDetails, false)
 					Expect(err).NotTo(HaveOccurred())
 				})
 			})
@@ -786,7 +787,7 @@ var _ = Describe("Broker", func() {
 				})
 
 				It("includes version in the service binding mount config", func() {
-					binding, err := broker.Bind(ctx, instanceID, "binding-id", bindDetails)
+					binding, err := broker.Bind(ctx, instanceID, "binding-id", bindDetails, false)
 					Expect(err).NotTo(HaveOccurred())
 
 					mc := binding.VolumeMounts[0].Device.MountConfig
@@ -801,32 +802,32 @@ var _ = Describe("Broker", func() {
 				It("doesn't error when binding the same details", func() {
 					fakeStore.IsBindingConflictReturns(false)
 
-					_, err := broker.Bind(ctx, "some-instance-id", "binding-id", bindDetails)
+					_, err := broker.Bind(ctx, "some-instance-id", "binding-id", bindDetails, false)
 					Expect(err).NotTo(HaveOccurred())
 				})
 
 				It("errors when binding different details", func() {
 					fakeStore.IsBindingConflictReturns(true)
 
-					_, err := broker.Bind(ctx, "some-instance-id", "binding-id", bindDetails)
-					Expect(err).To(Equal(brokerapi.ErrBindingAlreadyExists))
+					_, err := broker.Bind(ctx, "some-instance-id", "binding-id", bindDetails, false)
+					Expect(err).To(Equal(apiresponses.ErrBindingAlreadyExists))
 				})
 			})
 
 			Context("given another binding with the same share", func() {
 				var (
 					err       error
-					bindSpec1 brokerapi.Binding
+					bindSpec1 domain.Binding
 				)
 
 				BeforeEach(func() {
-					bindSpec1, err = broker.Bind(ctx, "some-instance-id", "binding-id", bindDetails)
+					bindSpec1, err = broker.Bind(ctx, "some-instance-id", "binding-id", bindDetails, false)
 					Expect(err).NotTo(HaveOccurred())
 				})
 
 				Context("given different options", func() {
 					var (
-						bindSpec2 brokerapi.Binding
+						bindSpec2 domain.Binding
 					)
 
 					BeforeEach(func() {
@@ -837,7 +838,7 @@ var _ = Describe("Broker", func() {
 						bindDetails.RawParameters, err = json.Marshal(bindParameters)
 						Expect(err).NotTo(HaveOccurred())
 
-						bindSpec2, err = broker.Bind(ctx, "some-instance-id", "binding-id-2", bindDetails)
+						bindSpec2, err = broker.Bind(ctx, "some-instance-id", "binding-id-2", bindDetails, false)
 						Expect(err).NotTo(HaveOccurred())
 					})
 
@@ -854,7 +855,7 @@ var _ = Describe("Broker", func() {
 
 				BeforeEach(func() {
 					fakeStore.CreateBindingDetailsReturns(errors.New("badness"))
-					_, err = broker.Bind(ctx, "some-instance-id", "binding-id", bindDetails)
+					_, err = broker.Bind(ctx, "some-instance-id", "binding-id", bindDetails, false)
 
 				})
 
@@ -870,7 +871,7 @@ var _ = Describe("Broker", func() {
 
 				BeforeEach(func() {
 					fakeStore.SaveReturns(errors.New("badness"))
-					_, err = broker.Bind(ctx, "some-instance-id", "binding-id", bindDetails)
+					_, err = broker.Bind(ctx, "some-instance-id", "binding-id", bindDetails, false)
 				})
 
 				It("should error", func() {
@@ -970,11 +971,11 @@ var _ = Describe("Broker", func() {
 						bindMessage, err := json.Marshal(bindParameters)
 						Expect(err).NotTo(HaveOccurred())
 
-						bindDetails = brokerapi.BindDetails{AppGUID: "guid", RawParameters: bindMessage}
+						bindDetails = domain.BindDetails{AppGUID: "guid", RawParameters: bindMessage}
 					})
 
 					It("passes allow_root=true option through", func() {
-						binding, err := broker.Bind(ctx, instanceID, "binding-id", bindDetails)
+						binding, err := broker.Bind(ctx, instanceID, "binding-id", bindDetails, false)
 						Expect(err).NotTo(HaveOccurred())
 
 						mc := binding.VolumeMounts[0].Device.MountConfig
@@ -989,7 +990,7 @@ var _ = Describe("Broker", func() {
 
 		Context(".Unbind", func() {
 			var (
-				bindDetails brokerapi.BindDetails
+				bindDetails domain.BindDetails
 			)
 
 			BeforeEach(func() {
@@ -1000,34 +1001,34 @@ var _ = Describe("Broker", func() {
 
 				bindMessage, err := json.Marshal(bindParameters)
 				Expect(err).NotTo(HaveOccurred())
-				bindDetails = brokerapi.BindDetails{AppGUID: "guid", RawParameters: bindMessage}
+				bindDetails = domain.BindDetails{AppGUID: "guid", RawParameters: bindMessage}
 
 				fakeStore.RetrieveBindingDetailsReturns(bindDetails, nil)
 			})
 
 			It("unbinds a bound service instance from an app", func() {
-				err := broker.Unbind(ctx, "some-instance-id", "binding-id", brokerapi.UnbindDetails{})
+				_, err := broker.Unbind(ctx, "some-instance-id", "binding-id", domain.UnbindDetails{}, false)
 				Expect(err).NotTo(HaveOccurred())
 			})
 
 			It("fails when trying to unbind a instance that has not been provisioned", func() {
 				fakeStore.RetrieveInstanceDetailsReturns(brokerstore.ServiceInstance{}, errors.New("Shazaam!"))
 
-				err := broker.Unbind(ctx, "some-other-instance-id", "binding-id", brokerapi.UnbindDetails{})
-				Expect(err).To(Equal(brokerapi.ErrInstanceDoesNotExist))
+				_, err := broker.Unbind(ctx, "some-other-instance-id", "binding-id", domain.UnbindDetails{}, false)
+				Expect(err).To(Equal(apiresponses.ErrInstanceDoesNotExist))
 			})
 
 			It("fails when trying to unbind a binding that has not been bound", func() {
-				fakeStore.RetrieveBindingDetailsReturns(brokerapi.BindDetails{}, errors.New("Hooray!"))
+				fakeStore.RetrieveBindingDetailsReturns(domain.BindDetails{}, errors.New("Hooray!"))
 
-				err := broker.Unbind(ctx, "some-instance-id", "some-other-binding-id", brokerapi.UnbindDetails{})
-				Expect(err).To(Equal(brokerapi.ErrBindingDoesNotExist))
+				_, err := broker.Unbind(ctx, "some-instance-id", "some-other-binding-id", domain.UnbindDetails{}, false)
+				Expect(err).To(Equal(apiresponses.ErrBindingDoesNotExist))
 			})
 
 			It("should write state", func() {
 				previousCallCount := fakeStore.SaveCallCount()
 
-				err := broker.Unbind(ctx, "some-instance-id", "binding-id", brokerapi.UnbindDetails{})
+				_, err := broker.Unbind(ctx, "some-instance-id", "binding-id", domain.UnbindDetails{}, false)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(fakeStore.SaveCallCount()).To(Equal(previousCallCount + 1))
 			})
@@ -1038,7 +1039,7 @@ var _ = Describe("Broker", func() {
 				})
 
 				It("should error", func() {
-					err := broker.Unbind(ctx, "some-instance-id", "binding-id", brokerapi.UnbindDetails{})
+					_, err := broker.Unbind(ctx, "some-instance-id", "binding-id", domain.UnbindDetails{}, false)
 					Expect(err).To(HaveOccurred())
 				})
 			})
@@ -1049,7 +1050,7 @@ var _ = Describe("Broker", func() {
 				})
 
 				It("should error", func() {
-					err := broker.Unbind(ctx, "some-instance-id", "binding-id", brokerapi.UnbindDetails{})
+					_, err := broker.Unbind(ctx, "some-instance-id", "binding-id", domain.UnbindDetails{}, false)
 					Expect(err).To(HaveOccurred())
 				})
 			})
@@ -1057,9 +1058,9 @@ var _ = Describe("Broker", func() {
 
 		Context(".Update", func() {
 			It("should return a 422 status code", func() {
-				_, err := broker.Update(ctx, "", brokerapi.UpdateDetails{}, false)
+				_, err := broker.Update(ctx, "", domain.UpdateDetails{}, false)
 				Expect(err).To(HaveOccurred())
-				Expect(err).To(MatchError(brokerapi.NewFailureResponse(errors.New(
+				Expect(err).To(MatchError(apiresponses.NewFailureResponse(errors.New(
 					"This service does not support instance updates. Please delete your service instance and create a new one with updated configuration."),
 					422,
 					"")))
@@ -1069,7 +1070,7 @@ var _ = Describe("Broker", func() {
 
 	Context("when the broker type is SMB", func() {
 		BeforeEach(func() {
-			fakeServices.ListReturns([]brokerapi.Service{
+			fakeServices.ListReturns([]domain.Service{
 				{
 					ID:            "smb-service-id",
 					Name:          "smb",
@@ -1077,8 +1078,8 @@ var _ = Describe("Broker", func() {
 					Bindable:      true,
 					PlanUpdatable: false,
 					Tags:          []string{"smb"},
-					Requires:      []brokerapi.RequiredPermission{"volume_mount"},
-					Plans: []brokerapi.ServicePlan{
+					Requires:      []domain.RequiredPermission{"volume_mount"},
+					Plans: []domain.ServicePlan{
 						{
 							Name:        "Existing",
 							ID:          "Existing",
@@ -1134,7 +1135,7 @@ var _ = Describe("Broker", func() {
 				Expect(result.Bindable).To(Equal(true))
 				Expect(result.PlanUpdatable).To(Equal(false))
 				Expect(result.Tags).To(ConsistOf([]string{"smb"}))
-				Expect(result.Requires).To(ContainElement(brokerapi.RequiredPermission("volume_mount")))
+				Expect(result.Requires).To(ContainElement(domain.RequiredPermission("volume_mount")))
 
 				Expect(result.Plans[0].Name).To(Equal("Existing"))
 				Expect(result.Plans[0].ID).To(Equal("Existing"))
@@ -1145,10 +1146,10 @@ var _ = Describe("Broker", func() {
 		Context(".Provision", func() {
 			var (
 				instanceID       string
-				provisionDetails brokerapi.ProvisionDetails
+				provisionDetails domain.ProvisionDetails
 				asyncAllowed     bool
 
-				spec brokerapi.ProvisionedServiceSpec
+				spec domain.ProvisionedServiceSpec
 				err  error
 			)
 
@@ -1161,7 +1162,7 @@ var _ = Describe("Broker", func() {
 				err = json.NewEncoder(buf).Encode(configuration)
 				Expect(err).NotTo(HaveOccurred())
 
-				provisionDetails = brokerapi.ProvisionDetails{PlanID: "Existing", RawParameters: json.RawMessage(buf.Bytes())}
+				provisionDetails = domain.ProvisionDetails{PlanID: "Existing", RawParameters: json.RawMessage(buf.Bytes())}
 				asyncAllowed = false
 				fakeStore.RetrieveInstanceDetailsReturns(brokerstore.ServiceInstance{}, errors.New("not found"))
 			})
@@ -1194,7 +1195,7 @@ var _ = Describe("Broker", func() {
 					err = json.NewEncoder(buf).Encode(configuration)
 					Expect(err).NotTo(HaveOccurred())
 
-					provisionDetails = brokerapi.ProvisionDetails{PlanID: "Existing", RawParameters: json.RawMessage(buf.Bytes())}
+					provisionDetails = domain.ProvisionDetails{PlanID: "Existing", RawParameters: json.RawMessage(buf.Bytes())}
 				})
 
 				It("should write uid and gid into state", func() {
@@ -1213,11 +1214,11 @@ var _ = Describe("Broker", func() {
 			Context("create-service was given invalid JSON", func() {
 				BeforeEach(func() {
 					badJson := []byte("{this is not json")
-					provisionDetails = brokerapi.ProvisionDetails{PlanID: "Existing", RawParameters: json.RawMessage(badJson)}
+					provisionDetails = domain.ProvisionDetails{PlanID: "Existing", RawParameters: json.RawMessage(badJson)}
 				})
 
 				It("errors", func() {
-					Expect(err).To(Equal(brokerapi.ErrRawParamsInvalid))
+					Expect(err).To(Equal(apiresponses.ErrRawParamsInvalid))
 				})
 
 			})
@@ -1230,7 +1231,7 @@ var _ = Describe("Broker", func() {
 					err = json.NewEncoder(buf).Encode(configuration)
 					Expect(err).NotTo(HaveOccurred())
 
-					provisionDetails = brokerapi.ProvisionDetails{PlanID: "Existing", RawParameters: json.RawMessage(buf.Bytes())}
+					provisionDetails = domain.ProvisionDetails{PlanID: "Existing", RawParameters: json.RawMessage(buf.Bytes())}
 				})
 
 				It("errors", func() {
@@ -1246,7 +1247,7 @@ var _ = Describe("Broker", func() {
 					err = json.NewEncoder(buf).Encode(configuration)
 					Expect(err).NotTo(HaveOccurred())
 
-					provisionDetails = brokerapi.ProvisionDetails{PlanID: "Existing", RawParameters: json.RawMessage(buf.Bytes())}
+					provisionDetails = domain.ProvisionDetails{PlanID: "Existing", RawParameters: json.RawMessage(buf.Bytes())}
 				})
 
 				It("errors", func() {
@@ -1262,7 +1263,7 @@ var _ = Describe("Broker", func() {
 					err = json.NewEncoder(buf).Encode(configuration)
 					Expect(err).NotTo(HaveOccurred())
 
-					provisionDetails = brokerapi.ProvisionDetails{PlanID: "Existing", RawParameters: json.RawMessage(buf.Bytes())}
+					provisionDetails = domain.ProvisionDetails{PlanID: "Existing", RawParameters: json.RawMessage(buf.Bytes())}
 				})
 
 				It("should not error", func() {
@@ -1286,7 +1287,7 @@ var _ = Describe("Broker", func() {
 				})
 
 				It("should error", func() {
-					Expect(err).To(Equal(brokerapi.ErrInstanceAlreadyExists))
+					Expect(err).To(Equal(apiresponses.ErrInstanceAlreadyExists))
 				})
 			})
 
@@ -1324,17 +1325,17 @@ var _ = Describe("Broker", func() {
 			})
 
 			JustBeforeEach(func() {
-				_, err = broker.Deprovision(ctx, instanceID, brokerapi.DeprovisionDetails{}, asyncAllowed)
+				_, err = broker.Deprovision(ctx, instanceID, domain.DeprovisionDetails{}, asyncAllowed)
 			})
 
 			Context("when the instance does not exist", func() {
 				BeforeEach(func() {
 					instanceID = "does-not-exist"
-					fakeStore.RetrieveInstanceDetailsReturns(brokerstore.ServiceInstance{}, brokerapi.ErrInstanceDoesNotExist)
+					fakeStore.RetrieveInstanceDetailsReturns(brokerstore.ServiceInstance{}, apiresponses.ErrInstanceDoesNotExist)
 				})
 
 				It("should fail", func() {
-					Expect(err).To(Equal(brokerapi.ErrInstanceDoesNotExist))
+					Expect(err).To(Equal(apiresponses.ErrInstanceDoesNotExist))
 				})
 			})
 
@@ -1389,7 +1390,7 @@ var _ = Describe("Broker", func() {
 
 		Context(".LastOperation", func() {
 			It("errors", func() {
-				_, err := broker.LastOperation(ctx, "non-existant", "provision")
+				_, err := broker.LastOperation(ctx, "non-existant", domain.PollDetails{OperationData: "provision"})
 				Expect(err).To(HaveOccurred())
 			})
 		})
@@ -1397,11 +1398,11 @@ var _ = Describe("Broker", func() {
 		Context(".Bind", func() {
 			var (
 				instanceID, serviceID string
-				bindDetails           brokerapi.BindDetails
+				bindDetails           domain.BindDetails
 				bindParameters        map[string]interface{}
 
-				username, password, domain, uid, gid string
-				fuzzer                               = fuzz.New()
+				username, password, ntDomain, uid, gid string
+				fuzzer                                                                = fuzz.New()
 			)
 
 			BeforeEach(func() {
@@ -1411,7 +1412,7 @@ var _ = Describe("Broker", func() {
 				fuzzer.Fuzz(&gid)
 				fuzzer.Fuzz(&username)
 				fuzzer.Fuzz(&password)
-				fuzzer.Fuzz(&domain)
+				fuzzer.Fuzz(&ntDomain)
 
 				fakeStore.RetrieveInstanceDetailsStub = func(instanceID string) (brokerstore.ServiceInstance, error) {
 					return brokerstore.ServiceInstance{
@@ -1421,12 +1422,12 @@ var _ = Describe("Broker", func() {
 						},
 					}, nil
 				}
-				fakeStore.RetrieveBindingDetailsReturns(brokerapi.BindDetails{}, errors.New("yar"))
+				fakeStore.RetrieveBindingDetailsReturns(domain.BindDetails{}, errors.New("yar"))
 
 				bindParameters = map[string]interface{}{
 					"username": username,
 					"password": password,
-					"domain":   domain,
+					"domain":   ntDomain,
 					"uid":      uid,
 					"gid":      gid,
 				}
@@ -1434,7 +1435,7 @@ var _ = Describe("Broker", func() {
 				bindMessage, err := json.Marshal(bindParameters)
 				Expect(err).NotTo(HaveOccurred())
 
-				bindDetails = brokerapi.BindDetails{
+				bindDetails = domain.BindDetails{
 					AppGUID:       "guid",
 					RawParameters: bindMessage,
 				}
@@ -1442,7 +1443,7 @@ var _ = Describe("Broker", func() {
 
 			for i := 0; i < 1000; i++ {
 				It(fmt.Sprintf("passes source, username, password, uid, gid and domain from create-service into mountConfig on the bind response. Attempt: %v", i), func() {
-					binding, err := broker.Bind(ctx, instanceID, "binding-id", bindDetails)
+					binding, err := broker.Bind(ctx, instanceID, "binding-id", bindDetails, false)
 					Expect(err).NotTo(HaveOccurred())
 
 					mc := binding.VolumeMounts[0].Device.MountConfig
@@ -1461,7 +1462,7 @@ var _ = Describe("Broker", func() {
 
 					v, ok = mc["domain"].(string)
 					Expect(ok).To(BeTrue())
-					Expect(v).To(Equal(domain))
+					Expect(v).To(Equal(ntDomain))
 
 					v, ok = mc["uid"].(string)
 					Expect(ok).To(BeTrue())
@@ -1481,14 +1482,14 @@ var _ = Describe("Broker", func() {
 						bindMessage, err := json.Marshal(fuzzyParams)
 						Expect(err).NotTo(HaveOccurred())
 
-						bindDetails = brokerapi.BindDetails{
+						bindDetails = domain.BindDetails{
 							AppGUID:       "guid",
 							RawParameters: bindMessage,
 						}
 					})
 
 					It(fmt.Sprintf("errors with a meaningful error message Attempt: %v", i), func() {
-						_, err := broker.Bind(ctx, instanceID, "binding-id", bindDetails)
+						_, err := broker.Bind(ctx, instanceID, "binding-id", bindDetails, false)
 
 						Expect(err).To(MatchError(ContainSubstring("Not allowed options")))
 					})
@@ -1496,14 +1497,14 @@ var _ = Describe("Broker", func() {
 			}
 
 			It("includes empty credentials to prevent CAPI crash", func() {
-				binding, err := broker.Bind(ctx, instanceID, "binding-id", bindDetails)
+				binding, err := broker.Bind(ctx, instanceID, "binding-id", bindDetails, false)
 				Expect(err).NotTo(HaveOccurred())
 
 				Expect(binding.Credentials).NotTo(BeNil())
 			})
 
 			It("uses the instance ID in the default container path", func() {
-				binding, err := broker.Bind(ctx, "some-instance-id", "binding-id", bindDetails)
+				binding, err := broker.Bind(ctx, "some-instance-id", "binding-id", bindDetails, false)
 				Expect(err).NotTo(HaveOccurred())
 
 				Expect(binding.VolumeMounts[0].ContainerDir).To(Equal("/var/vcap/data/some-instance-id"))
@@ -1517,14 +1518,14 @@ var _ = Describe("Broker", func() {
 				bindDetails.RawParameters, err = json.Marshal(bindParameters)
 				Expect(err).NotTo(HaveOccurred())
 
-				binding, err := broker.Bind(ctx, "some-instance-id", "binding-id", bindDetails)
+				binding, err := broker.Bind(ctx, "some-instance-id", "binding-id", bindDetails, false)
 				Expect(err).NotTo(HaveOccurred())
 
 				Expect(binding.VolumeMounts[0].ContainerDir).To(Equal("/var/vcap/otherdir/something"))
 			})
 
 			It("uses rw as its default mode", func() {
-				binding, err := broker.Bind(ctx, "some-instance-id", "binding-id", bindDetails)
+				binding, err := broker.Bind(ctx, "some-instance-id", "binding-id", bindDetails, false)
 				Expect(err).NotTo(HaveOccurred())
 
 				Expect(binding.VolumeMounts[0].Mode).To(Equal("rw"))
@@ -1538,7 +1539,7 @@ var _ = Describe("Broker", func() {
 				bindDetails.RawParameters, err = json.Marshal(bindParameters)
 				Expect(err).NotTo(HaveOccurred())
 
-				binding, err := broker.Bind(ctx, "some-instance-id", "binding-id", bindDetails)
+				binding, err := broker.Bind(ctx, "some-instance-id", "binding-id", bindDetails, false)
 				Expect(err).NotTo(HaveOccurred())
 
 				Expect(binding.VolumeMounts[0].Mode).To(Equal("r"))
@@ -1548,7 +1549,7 @@ var _ = Describe("Broker", func() {
 			It("should write state", func() {
 				previousSaveCallCount := fakeStore.SaveCallCount()
 
-				_, err := broker.Bind(ctx, "some-instance-id", "binding-id", bindDetails)
+				_, err := broker.Bind(ctx, "some-instance-id", "binding-id", bindDetails, false)
 				Expect(err).NotTo(HaveOccurred())
 
 				Expect(fakeStore.SaveCallCount()).To(Equal(previousSaveCallCount + 1))
@@ -1561,19 +1562,19 @@ var _ = Describe("Broker", func() {
 				bindDetails.RawParameters, err = json.Marshal(bindParameters)
 				Expect(err).NotTo(HaveOccurred())
 
-				_, err = broker.Bind(ctx, "some-instance-id", "binding-id", bindDetails)
+				_, err = broker.Bind(ctx, "some-instance-id", "binding-id", bindDetails, false)
 				Expect(err).To(MatchError(`Invalid ro parameter value: ""`))
 			})
 
 			It("fills in the driver name", func() {
-				binding, err := broker.Bind(ctx, "some-instance-id", "binding-id", bindDetails)
+				binding, err := broker.Bind(ctx, "some-instance-id", "binding-id", bindDetails, false)
 				Expect(err).NotTo(HaveOccurred())
 
 				Expect(binding.VolumeMounts[0].Driver).To(Equal("smbdriver"))
 			})
 
 			It("fills in the volume ID", func() {
-				binding, err := broker.Bind(ctx, "some-instance-id", "binding-id", bindDetails)
+				binding, err := broker.Bind(ctx, "some-instance-id", "binding-id", bindDetails, false)
 				Expect(err).NotTo(HaveOccurred())
 
 				Expect(binding.VolumeMounts[0].Device.VolumeId).To(ContainSubstring("some-instance-id"))
@@ -1594,7 +1595,7 @@ var _ = Describe("Broker", func() {
 				})
 
 				It("should favor the values in the bind configuration", func() {
-					binding, err := broker.Bind(ctx, instanceID, "binding-id", bindDetails)
+					binding, err := broker.Bind(ctx, instanceID, "binding-id", bindDetails, false)
 					Expect(err).NotTo(HaveOccurred())
 
 					mc := binding.VolumeMounts[0].Device.MountConfig
@@ -1610,14 +1611,14 @@ var _ = Describe("Broker", func() {
 
 				Context("when the bind operation doesn't pass configuration", func() {
 					BeforeEach(func() {
-						bindDetails = brokerapi.BindDetails{
+						bindDetails = domain.BindDetails{
 							AppGUID:       "guid",
 							RawParameters: []byte(""),
 						}
 					})
 
 					It("should use uid and gid from the service instance configuration", func() {
-						binding, err := broker.Bind(ctx, "some-instance-id", "binding-id", bindDetails)
+						binding, err := broker.Bind(ctx, "some-instance-id", "binding-id", bindDetails, false)
 						Expect(err).NotTo(HaveOccurred())
 
 						mc := binding.VolumeMounts[0].Device.MountConfig
@@ -1647,14 +1648,14 @@ var _ = Describe("Broker", func() {
 						}, nil
 					}
 
-					bindDetails = brokerapi.BindDetails{
+					bindDetails = domain.BindDetails{
 						AppGUID:       "guid",
 						RawParameters: []byte(`{"domain":"some-bind-domain","username":"some-bind-username","password":"some-bind-password"}`),
 					}
 				})
 
 				It("should favor the values in the bind configuration", func() {
-					binding, err := broker.Bind(ctx, instanceID, "binding-id", bindDetails)
+					binding, err := broker.Bind(ctx, instanceID, "binding-id", bindDetails, false)
 					Expect(err).NotTo(HaveOccurred())
 
 					mc := binding.VolumeMounts[0].Device.MountConfig
@@ -1679,16 +1680,16 @@ var _ = Describe("Broker", func() {
 					bindMessage, err := json.Marshal(bindParameters)
 					Expect(err).NotTo(HaveOccurred())
 
-					bindDetails = brokerapi.BindDetails{
+					bindDetails = domain.BindDetails{
 						AppGUID:       "guid",
 						RawParameters: bindMessage,
 					}
 
-					_, err = broker.Bind(ctx, instanceID, "binding-id", bindDetails)
+					_, err = broker.Bind(ctx, instanceID, "binding-id", bindDetails, false)
 					Expect(err).To(HaveOccurred())
 					Expect(err).To(MatchError("bind configuration contains the following invalid option: ['" + bindParamKeyName + "']"))
-					Expect(err).To(BeAssignableToTypeOf(&brokerapi.FailureResponse{}))
-					Expect(err.(*brokerapi.FailureResponse).ValidatedStatusCode(nil)).To(Equal(400))
+					Expect(err).To(BeAssignableToTypeOf(&apiresponses.FailureResponse{}))
+					Expect(err.(*apiresponses.FailureResponse).ValidatedStatusCode(nil)).To(Equal(400))
 					Expect(logger.Buffer()).To(gbytes.Say("bind configuration contains the following invalid option: \\['" + bindParamKeyName + "'\\]"))
 
 				},
@@ -1710,14 +1711,14 @@ var _ = Describe("Broker", func() {
 
 						fakeStore.RetrieveInstanceDetailsReturns(serviceInstance, nil)
 
-						bindDetails = brokerapi.BindDetails{
+						bindDetails = domain.BindDetails{
 							AppGUID:       "guid",
 							RawParameters: []byte{},
 						}
 					})
 
 					It("should use the values in the service instance configuration", func() {
-						binding, err := broker.Bind(ctx, instanceID, "binding-id", bindDetails)
+						binding, err := broker.Bind(ctx, instanceID, "binding-id", bindDetails, false)
 						Expect(err).NotTo(HaveOccurred())
 
 						mc := binding.VolumeMounts[0].Device.MountConfig
@@ -1731,28 +1732,28 @@ var _ = Describe("Broker", func() {
 
 			Context("when the bind operation doesn't pass configuration", func() {
 				BeforeEach(func() {
-					bindDetails = brokerapi.BindDetails{
+					bindDetails = domain.BindDetails{
 						AppGUID:       "guid",
 						RawParameters: []byte(""),
 					}
 				})
 
 				It("should succeed", func() {
-					_, err := broker.Bind(ctx, "some-instance-id", "binding-id", bindDetails)
+					_, err := broker.Bind(ctx, "some-instance-id", "binding-id", bindDetails, false)
 					Expect(err).NotTo(HaveOccurred())
 				})
 			})
 
 			Context("when the bind operation passes empty configuration", func() {
 				BeforeEach(func() {
-					bindDetails = brokerapi.BindDetails{
+					bindDetails = domain.BindDetails{
 						AppGUID:       "guid",
 						RawParameters: []byte("{}"),
 					}
 				})
 
 				It("should succeed", func() {
-					_, err := broker.Bind(ctx, "some-instance-id", "binding-id", bindDetails)
+					_, err := broker.Bind(ctx, "some-instance-id", "binding-id", bindDetails, false)
 					Expect(err).NotTo(HaveOccurred())
 				})
 			})
@@ -1770,14 +1771,14 @@ var _ = Describe("Broker", func() {
 
 					fakeStore.RetrieveInstanceDetailsReturns(serviceInstance, nil)
 
-					bindDetails = brokerapi.BindDetails{
+					bindDetails = domain.BindDetails{
 						AppGUID:       "guid",
 						RawParameters: []byte(`{"username":123,"password":false}`),
 					}
 				})
 
 				It("should convert the bind configuration values to strings", func() {
-					binding, err := broker.Bind(ctx, instanceID, "binding-id", bindDetails)
+					binding, err := broker.Bind(ctx, instanceID, "binding-id", bindDetails, false)
 					Expect(err).NotTo(HaveOccurred())
 
 					mc := binding.VolumeMounts[0].Device.MountConfig
@@ -1791,32 +1792,32 @@ var _ = Describe("Broker", func() {
 				It("doesn't error when binding the same details", func() {
 					fakeStore.IsBindingConflictReturns(false)
 
-					_, err := broker.Bind(ctx, "some-instance-id", "binding-id", bindDetails)
+					_, err := broker.Bind(ctx, "some-instance-id", "binding-id", bindDetails, false)
 					Expect(err).NotTo(HaveOccurred())
 				})
 
 				It("errors when binding different details", func() {
 					fakeStore.IsBindingConflictReturns(true)
 
-					_, err := broker.Bind(ctx, "some-instance-id", "binding-id", bindDetails)
-					Expect(err).To(Equal(brokerapi.ErrBindingAlreadyExists))
+					_, err := broker.Bind(ctx, "some-instance-id", "binding-id", bindDetails, false)
+					Expect(err).To(Equal(apiresponses.ErrBindingAlreadyExists))
 				})
 			})
 
 			Context("given another binding with the same share", func() {
 				var (
 					err       error
-					bindSpec1 brokerapi.Binding
+					bindSpec1 domain.Binding
 				)
 
 				BeforeEach(func() {
-					bindSpec1, err = broker.Bind(ctx, "some-instance-id", "binding-id", bindDetails)
+					bindSpec1, err = broker.Bind(ctx, "some-instance-id", "binding-id", bindDetails, false)
 					Expect(err).NotTo(HaveOccurred())
 				})
 
 				Context("given different options", func() {
 					var (
-						bindSpec2 brokerapi.Binding
+						bindSpec2 domain.Binding
 					)
 
 					BeforeEach(func() {
@@ -1827,7 +1828,7 @@ var _ = Describe("Broker", func() {
 						bindDetails.RawParameters, err = json.Marshal(bindParameters)
 						Expect(err).NotTo(HaveOccurred())
 
-						bindSpec2, err = broker.Bind(ctx, "some-instance-id", "binding-id-2", bindDetails)
+						bindSpec2, err = broker.Bind(ctx, "some-instance-id", "binding-id-2", bindDetails, false)
 						Expect(err).NotTo(HaveOccurred())
 					})
 
@@ -1844,7 +1845,7 @@ var _ = Describe("Broker", func() {
 
 				BeforeEach(func() {
 					fakeStore.CreateBindingDetailsReturns(errors.New("badness"))
-					_, err = broker.Bind(ctx, "some-instance-id", "binding-id", bindDetails)
+					_, err = broker.Bind(ctx, "some-instance-id", "binding-id", bindDetails, false)
 
 				})
 
@@ -1860,7 +1861,7 @@ var _ = Describe("Broker", func() {
 
 				BeforeEach(func() {
 					fakeStore.SaveReturns(errors.New("badness"))
-					_, err = broker.Bind(ctx, "some-instance-id", "binding-id", bindDetails)
+					_, err = broker.Bind(ctx, "some-instance-id", "binding-id", bindDetails, false)
 				})
 
 				It("should error", func() {
@@ -1873,13 +1874,13 @@ var _ = Describe("Broker", func() {
 					return brokerstore.ServiceInstance{}, errors.New("Awesome!")
 				}
 
-				_, err := broker.Bind(ctx, "nonexistent-instance-id", "binding-id", brokerapi.BindDetails{AppGUID: "guid"})
-				Expect(err).To(Equal(brokerapi.ErrInstanceDoesNotExist))
+				_, err := broker.Bind(ctx, "nonexistent-instance-id", "binding-id", domain.BindDetails{AppGUID: "guid"}, false)
+				Expect(err).To(Equal(apiresponses.ErrInstanceDoesNotExist))
 			})
 
 			It("errors when the app guid is not provided", func() {
-				_, err := broker.Bind(ctx, "some-instance-id", "binding-id", brokerapi.BindDetails{})
-				Expect(err).To(Equal(brokerapi.ErrAppGuidNotProvided))
+				_, err := broker.Bind(ctx, "some-instance-id", "binding-id", domain.BindDetails{}, false)
+				Expect(err).To(Equal(apiresponses.ErrAppGuidNotProvided))
 			})
 
 			Context("given allowed and default parameters are empty", func() {
@@ -1915,11 +1916,11 @@ var _ = Describe("Broker", func() {
 
 						bindMessage, err := json.Marshal(bindParameters)
 						Expect(err).NotTo(HaveOccurred())
-						bindDetails = brokerapi.BindDetails{AppGUID: "guid", RawParameters: bindMessage}
+						bindDetails = domain.BindDetails{AppGUID: "guid", RawParameters: bindMessage}
 					})
 
 					It("should return with an error", func() {
-						_, err := broker.Bind(ctx, instanceID, "binding-id", bindDetails)
+						_, err := broker.Bind(ctx, instanceID, "binding-id", bindDetails, false)
 						Expect(err).To(HaveOccurred())
 					})
 				})
@@ -1962,11 +1963,11 @@ var _ = Describe("Broker", func() {
 						bindMessage, err := json.Marshal(bindParameters)
 						Expect(err).NotTo(HaveOccurred())
 
-						bindDetails = brokerapi.BindDetails{AppGUID: "guid", RawParameters: bindMessage}
+						bindDetails = domain.BindDetails{AppGUID: "guid", RawParameters: bindMessage}
 					})
 
 					It("passes allow_root=true option through", func() {
-						binding, err := broker.Bind(ctx, instanceID, "binding-id", bindDetails)
+						binding, err := broker.Bind(ctx, instanceID, "binding-id", bindDetails, false)
 						Expect(err).NotTo(HaveOccurred())
 
 						mc := binding.VolumeMounts[0].Device.MountConfig
@@ -1981,7 +1982,7 @@ var _ = Describe("Broker", func() {
 
 		Context(".Unbind", func() {
 			var (
-				bindDetails brokerapi.BindDetails
+				bindDetails domain.BindDetails
 			)
 
 			BeforeEach(func() {
@@ -1992,34 +1993,34 @@ var _ = Describe("Broker", func() {
 
 				bindMessage, err := json.Marshal(bindParameters)
 				Expect(err).NotTo(HaveOccurred())
-				bindDetails = brokerapi.BindDetails{AppGUID: "guid", RawParameters: bindMessage}
+				bindDetails = domain.BindDetails{AppGUID: "guid", RawParameters: bindMessage}
 
 				fakeStore.RetrieveBindingDetailsReturns(bindDetails, nil)
 			})
 
 			It("unbinds a bound service instance from an app", func() {
-				err := broker.Unbind(ctx, "some-instance-id", "binding-id", brokerapi.UnbindDetails{})
+				_, err := broker.Unbind(ctx, "some-instance-id", "binding-id", domain.UnbindDetails{}, false)
 				Expect(err).NotTo(HaveOccurred())
 			})
 
 			It("fails when trying to unbind a instance that has not been provisioned", func() {
 				fakeStore.RetrieveInstanceDetailsReturns(brokerstore.ServiceInstance{}, errors.New("Shazaam!"))
 
-				err := broker.Unbind(ctx, "some-other-instance-id", "binding-id", brokerapi.UnbindDetails{})
-				Expect(err).To(Equal(brokerapi.ErrInstanceDoesNotExist))
+				_, err := broker.Unbind(ctx, "some-other-instance-id", "binding-id", domain.UnbindDetails{}, false)
+				Expect(err).To(Equal(apiresponses.ErrInstanceDoesNotExist))
 			})
 
 			It("fails when trying to unbind a binding that has not been bound", func() {
-				fakeStore.RetrieveBindingDetailsReturns(brokerapi.BindDetails{}, errors.New("Hooray!"))
+				fakeStore.RetrieveBindingDetailsReturns(domain.BindDetails{}, errors.New("Hooray!"))
 
-				err := broker.Unbind(ctx, "some-instance-id", "some-other-binding-id", brokerapi.UnbindDetails{})
-				Expect(err).To(Equal(brokerapi.ErrBindingDoesNotExist))
+				_, err := broker.Unbind(ctx, "some-instance-id", "some-other-binding-id", domain.UnbindDetails{}, false)
+				Expect(err).To(Equal(apiresponses.ErrBindingDoesNotExist))
 			})
 
 			It("should write state", func() {
 				previousCallCount := fakeStore.SaveCallCount()
 
-				err := broker.Unbind(ctx, "some-instance-id", "binding-id", brokerapi.UnbindDetails{})
+				_, err := broker.Unbind(ctx, "some-instance-id", "binding-id", domain.UnbindDetails{}, false)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(fakeStore.SaveCallCount()).To(Equal(previousCallCount + 1))
 			})
@@ -2030,7 +2031,7 @@ var _ = Describe("Broker", func() {
 				})
 
 				It("should error", func() {
-					err := broker.Unbind(ctx, "some-instance-id", "binding-id", brokerapi.UnbindDetails{})
+					_, err := broker.Unbind(ctx, "some-instance-id", "binding-id", domain.UnbindDetails{}, false)
 					Expect(err).To(HaveOccurred())
 				})
 			})
@@ -2041,7 +2042,7 @@ var _ = Describe("Broker", func() {
 				})
 
 				It("should error", func() {
-					err := broker.Unbind(ctx, "some-instance-id", "binding-id", brokerapi.UnbindDetails{})
+					_, err := broker.Unbind(ctx, "some-instance-id", "binding-id", domain.UnbindDetails{}, false)
 					Expect(err).To(HaveOccurred())
 				})
 			})
