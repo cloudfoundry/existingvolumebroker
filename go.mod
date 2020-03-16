@@ -5,7 +5,7 @@ require (
 	code.cloudfoundry.org/credhub-cli v0.0.0-20200227190202-0fffecb4557e // indirect
 	code.cloudfoundry.org/goshims v0.1.0
 	code.cloudfoundry.org/lager v2.0.0+incompatible
-	code.cloudfoundry.org/service-broker-store v0.2.0
+	code.cloudfoundry.org/service-broker-store v0.3.0
 	code.cloudfoundry.org/volume-mount-options v0.0.0-20191112224024-20b5adcd41a3
 	github.com/golang/protobuf v1.3.4 // indirect
 	github.com/google/gofuzz v1.1.0
