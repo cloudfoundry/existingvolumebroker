@@ -1,0 +1,7 @@
+{
+  "pr": "69",
+  "repository": "cloudfoundry/existingvolumebroker",
+  "base_branch": "master",
+  "head_branch": "dependabot/go_modules/code.cloudfoundry.org/service-broker-store-0.27.0",
+  "branch_tip": "6cc3dc1a6e929afb4339171b8ae0d58791e68cfb"
+}
