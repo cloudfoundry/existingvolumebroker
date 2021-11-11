@@ -10,7 +10,7 @@ code.cloudfoundry.org/credhub-cli/credhub/credentials/values
 code.cloudfoundry.org/credhub-cli/credhub/permissions
 code.cloudfoundry.org/credhub-cli/credhub/server
 code.cloudfoundry.org/credhub-cli/errors
-# code.cloudfoundry.org/goshims v0.7.0
+# code.cloudfoundry.org/goshims v0.10.0
 code.cloudfoundry.org/goshims/osshim
 code.cloudfoundry.org/goshims/osshim/os_fake
 # code.cloudfoundry.org/lager v2.0.0+incompatible
