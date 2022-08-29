@@ -17,7 +17,7 @@ code.cloudfoundry.org/goshims/osshim/os_fake
 code.cloudfoundry.org/lager
 code.cloudfoundry.org/lager/lagerctx
 code.cloudfoundry.org/lager/lagertest
-# code.cloudfoundry.org/service-broker-store v0.30.0
+# code.cloudfoundry.org/service-broker-store v0.31.0
 code.cloudfoundry.org/service-broker-store/brokerstore
 code.cloudfoundry.org/service-broker-store/brokerstore/brokerstorefakes
 code.cloudfoundry.org/service-broker-store/brokerstore/credhub_shims
