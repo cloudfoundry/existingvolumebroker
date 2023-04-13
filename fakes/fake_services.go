@@ -5,38 +5,39 @@ import (
 	"sync"
 
 	"code.cloudfoundry.org/existingvolumebroker"
-	"github.com/pivotal-cf/brokerapi"
+	"github.com/pivotal-cf/brokerapi/v9/domain"
 )
 
 type FakeServices struct {
-	ListStub        func() []brokerapi.Service
+	ListStub        func() []domain.Service
 	listMutex       sync.RWMutex
 	listArgsForCall []struct {
 	}
 	listReturns struct {
-		result1 []brokerapi.Service
+		result1 []domain.Service
 	}
 	listReturnsOnCall map[int]struct {
-		result1 []brokerapi.Service
+		result1 []domain.Service
 	}
 	invocations      map[string][][]interface{}
 	invocationsMutex sync.RWMutex
 }
 
-func (fake *FakeServices) List() []brokerapi.Service {
+func (fake *FakeServices) List() []domain.Service {
 	fake.listMutex.Lock()
 	ret, specificReturn := fake.listReturnsOnCall[len(fake.listArgsForCall)]
 	fake.listArgsForCall = append(fake.listArgsForCall, struct {
 	}{})
+	stub := fake.ListStub
+	fakeReturns := fake.listReturns
 	fake.recordInvocation("List", []interface{}{})
 	fake.listMutex.Unlock()
-	if fake.ListStub != nil {
-		return fake.ListStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.listReturns
 	return fakeReturns.result1
 }
 
@@ -46,32 +47,32 @@ func (fake *FakeServices) ListCallCount() int {
 	return len(fake.listArgsForCall)
 }
 
-func (fake *FakeServices) ListCalls(stub func() []brokerapi.Service) {
+func (fake *FakeServices) ListCalls(stub func() []domain.Service) {
 	fake.listMutex.Lock()
 	defer fake.listMutex.Unlock()
 	fake.ListStub = stub
 }
 
-func (fake *FakeServices) ListReturns(result1 []brokerapi.Service) {
+func (fake *FakeServices) ListReturns(result1 []domain.Service) {
 	fake.listMutex.Lock()
 	defer fake.listMutex.Unlock()
 	fake.ListStub = nil
 	fake.listReturns = struct {
-		result1 []brokerapi.Service
+		result1 []domain.Service
 	}{result1}
 }
 
-func (fake *FakeServices) ListReturnsOnCall(i int, result1 []brokerapi.Service) {
+func (fake *FakeServices) ListReturnsOnCall(i int, result1 []domain.Service) {
 	fake.listMutex.Lock()
 	defer fake.listMutex.Unlock()
 	fake.ListStub = nil
 	if fake.listReturnsOnCall == nil {
 		fake.listReturnsOnCall = make(map[int]struct {
-			result1 []brokerapi.Service
+			result1 []domain.Service
 		})
 	}
 	fake.listReturnsOnCall[i] = struct {
-		result1 []brokerapi.Service
+		result1 []domain.Service
 	}{result1}
 }
 

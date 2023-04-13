@@ -1,9 +1,9 @@
 package utils
 
 import (
-	"code.cloudfoundry.org/goshims/osshim/os_fake"
-	"code.cloudfoundry.org/lager/lagertest"
-	. "github.com/onsi/ginkgo"
+	"code.cloudfoundry.org/existingvolumebroker/fakes/osshim/osshimfakes"
+	"code.cloudfoundry.org/lager/v3/lagertest"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gbytes"
 )
@@ -12,11 +12,11 @@ var _ = Describe("utils", func() {
 	Context("#IsThereAProxy", func() {
 
 		var proxy bool
-		var fakeOs *os_fake.FakeOs
+		var fakeOs *osshimfakes.FakeOs
 		var testLogger *lagertest.TestLogger
 
 		BeforeEach(func() {
-			fakeOs = &os_fake.FakeOs{}
+			fakeOs = &osshimfakes.FakeOs{}
 			testLogger = lagertest.NewTestLogger("testlogger")
 		})
 
