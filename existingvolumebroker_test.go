@@ -2,34 +2,33 @@ package existingvolumebroker_test
 
 import (
 	"bytes"
-	"code.cloudfoundry.org/existingvolumebroker"
-	"code.cloudfoundry.org/existingvolumebroker/fakes"
-	"code.cloudfoundry.org/goshims/osshim/os_fake"
-	"code.cloudfoundry.org/lager/lagertest"
-	"code.cloudfoundry.org/service-broker-store/brokerstore"
-	"code.cloudfoundry.org/service-broker-store/brokerstore/brokerstorefakes"
-	vmo "code.cloudfoundry.org/volume-mount-options"
-	"code.cloudfoundry.org/volume-mount-options/volume-mount-optionsfakes"
 	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
-	fuzz "github.com/google/gofuzz"
-	"github.com/onsi/ginkgo/extensions/table"
-	"github.com/onsi/gomega/gbytes"
-	"github.com/pivotal-cf/brokerapi/domain"
-	"github.com/pivotal-cf/brokerapi/domain/apiresponses"
 
-	. "github.com/onsi/ginkgo"
+	"code.cloudfoundry.org/existingvolumebroker"
+	"code.cloudfoundry.org/existingvolumebroker/fakes"
+	"code.cloudfoundry.org/existingvolumebroker/fakes/osshim/osshimfakes"
+	"code.cloudfoundry.org/lager/v3/lagertest"
+	"code.cloudfoundry.org/service-broker-store/brokerstore"
+	"code.cloudfoundry.org/service-broker-store/brokerstore/brokerstorefakes"
+	vmo "code.cloudfoundry.org/volume-mount-options"
+	volumemountoptionsfakes "code.cloudfoundry.org/volume-mount-options/volume-mount-optionsfakes"
+	fuzz "github.com/google/gofuzz"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+	"github.com/onsi/gomega/gbytes"
+	"github.com/pivotal-cf/brokerapi/v9/domain"
+	"github.com/pivotal-cf/brokerapi/v9/domain/apiresponses"
 )
 
-//go:generate counterfeiter -o ./fakes/fake_user_opts_validation.go ./vendor/code.cloudfoundry.org/volume-mount-options UserOptsValidation
+//counterfeiter:generate -o ./fakes/fake_user_opts_validation.go code.cloudfoundry.org/volume-mount-options.UserOptsValidation
 
 var _ = Describe("Broker", func() {
 	var (
 		broker       domain.ServiceBroker
-		fakeOs       *os_fake.FakeOs
+		fakeOs       *osshimfakes.FakeOs
 		logger       *lagertest.TestLogger
 		ctx          context.Context
 		fakeStore    *brokerstorefakes.FakeStore
@@ -39,7 +38,7 @@ var _ = Describe("Broker", func() {
 	BeforeEach(func() {
 		logger = lagertest.NewTestLogger("test-broker")
 		ctx = context.TODO()
-		fakeOs = &os_fake.FakeOs{}
+		fakeOs = &osshimfakes.FakeOs{}
 		fakeStore = &brokerstorefakes.FakeStore{}
 		fakeServices = &fakes.FakeServices{}
 	})
@@ -1402,7 +1401,7 @@ var _ = Describe("Broker", func() {
 				bindParameters        map[string]interface{}
 
 				username, password, ntDomain, uid, gid string
-				fuzzer                                                                = fuzz.New()
+				fuzzer                                 = fuzz.New()
 			)
 
 			BeforeEach(func() {
@@ -1665,7 +1664,7 @@ var _ = Describe("Broker", func() {
 					Expect(mc["password"]).To(Equal("some-bind-password"))
 				})
 
-				table.DescribeTable("when the bind configuration is set with a disallowed bind option", func(bindParamKeyName string) {
+				DescribeTable("when the bind configuration is set with a disallowed bind option", func(bindParamKeyName string) {
 					serviceInstance := brokerstore.ServiceInstance{
 						ServiceID:          serviceID,
 						ServiceFingerPrint: map[string]interface{}{},
@@ -1693,8 +1692,8 @@ var _ = Describe("Broker", func() {
 					Expect(logger.Buffer()).To(gbytes.Say("bind configuration contains the following invalid option: \\['" + bindParamKeyName + "'\\]"))
 
 				},
-					table.Entry("when the bind configuration overrides the source", "source"),
-					table.Entry("when the bind configuration overrides the share", "share"),
+					Entry("when the bind configuration overrides the source", "source"),
+					Entry("when the bind configuration overrides the share", "share"),
 				)
 
 				Context("when the bind configuration is empty", func() {
