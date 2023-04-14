@@ -13,7 +13,7 @@ import (
 	"sync"
 
 	"code.cloudfoundry.org/clock"
-	"code.cloudfoundry.org/existingvolumebroker/fakes/osshim"
+	"code.cloudfoundry.org/goshims/osshim"
 	"code.cloudfoundry.org/lager/v3"
 	"code.cloudfoundry.org/service-broker-store/brokerstore"
 	vmo "code.cloudfoundry.org/volume-mount-options"
@@ -54,8 +54,6 @@ type Broker struct {
 }
 
 //go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
-//counterfeiter:generate -p -o fakes/osshim/os.go os
-
 //counterfeiter:generate -o fakes/fake_services.go . Services
 type Services interface {
 	List() []domain.Service
