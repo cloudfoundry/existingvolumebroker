@@ -9,7 +9,7 @@ import (
 
 	"code.cloudfoundry.org/existingvolumebroker"
 	"code.cloudfoundry.org/existingvolumebroker/fakes"
-	"code.cloudfoundry.org/existingvolumebroker/fakes/osshim/osshimfakes"
+	"code.cloudfoundry.org/goshims/osshim/os_fake"
 	"code.cloudfoundry.org/lager/v3/lagertest"
 	"code.cloudfoundry.org/service-broker-store/brokerstore"
 	"code.cloudfoundry.org/service-broker-store/brokerstore/brokerstorefakes"
@@ -28,7 +28,7 @@ import (
 var _ = Describe("Broker", func() {
 	var (
 		broker       domain.ServiceBroker
-		fakeOs       *osshimfakes.FakeOs
+		fakeOs       *os_fake.FakeOs
 		logger       *lagertest.TestLogger
 		ctx          context.Context
 		fakeStore    *brokerstorefakes.FakeStore
@@ -38,7 +38,7 @@ var _ = Describe("Broker", func() {
 	BeforeEach(func() {
 		logger = lagertest.NewTestLogger("test-broker")
 		ctx = context.TODO()
-		fakeOs = &osshimfakes.FakeOs{}
+		fakeOs = &os_fake.FakeOs{}
 		fakeStore = &brokerstorefakes.FakeStore{}
 		fakeServices = &fakes.FakeServices{}
 	})

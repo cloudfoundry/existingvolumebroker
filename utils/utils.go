@@ -3,7 +3,7 @@ package utils
 import (
 	"os"
 
-	"code.cloudfoundry.org/existingvolumebroker/fakes/osshim"
+	"code.cloudfoundry.org/goshims/osshim"
 	"code.cloudfoundry.org/lager/v3"
 	"github.com/tedsuo/ifrit"
 	"github.com/tedsuo/ifrit/grouper"
