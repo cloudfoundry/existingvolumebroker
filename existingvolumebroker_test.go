@@ -19,8 +19,8 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gbytes"
-	"github.com/pivotal-cf/brokerapi/v9/domain"
-	"github.com/pivotal-cf/brokerapi/v9/domain/apiresponses"
+	"github.com/pivotal-cf/brokerapi/v10/domain"
+	"github.com/pivotal-cf/brokerapi/v10/domain/apiresponses"
 )
 
 //counterfeiter:generate -o ./fakes/fake_user_opts_validation.go code.cloudfoundry.org/volume-mount-options.UserOptsValidation

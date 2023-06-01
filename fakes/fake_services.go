@@ -5,7 +5,7 @@ import (
 	"sync"
 
 	"code.cloudfoundry.org/existingvolumebroker"
-	"github.com/pivotal-cf/brokerapi/v9/domain"
+	"github.com/pivotal-cf/brokerapi/v10/domain"
 )
 
 type FakeServices struct {
