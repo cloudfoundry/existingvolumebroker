@@ -16,7 +16,7 @@ code.cloudfoundry.org/credhub-cli/errors
 ## explicit; go 1.20
 code.cloudfoundry.org/goshims/osshim
 code.cloudfoundry.org/goshims/osshim/os_fake
-# code.cloudfoundry.org/lager/v3 v3.0.1
+# code.cloudfoundry.org/lager/v3 v3.0.2
 ## explicit; go 1.19
 code.cloudfoundry.org/lager/v3
 code.cloudfoundry.org/lager/v3/internal/truncate
