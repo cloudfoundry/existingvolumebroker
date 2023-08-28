@@ -22,7 +22,7 @@ code.cloudfoundry.org/lager/v3
 code.cloudfoundry.org/lager/v3/internal/truncate
 code.cloudfoundry.org/lager/v3/lagerctx
 code.cloudfoundry.org/lager/v3/lagertest
-# code.cloudfoundry.org/service-broker-store v0.59.0
+# code.cloudfoundry.org/service-broker-store v0.60.0
 ## explicit; go 1.20
 code.cloudfoundry.org/service-broker-store/brokerstore
 code.cloudfoundry.org/service-broker-store/brokerstore/brokerstorefakes
