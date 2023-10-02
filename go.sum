@@ -2,8 +2,8 @@ code.cloudfoundry.org/clock v1.1.0 h1:XLzC6W3Ah/Y7ht1rmZ6+QfPdt1iGWEAAtIZXgiaj57
 code.cloudfoundry.org/clock v1.1.0/go.mod h1:yA3fxddT9RINQL2XHS7PS+OXxKCGhfrZmlNUCIM6AKo=
 code.cloudfoundry.org/credhub-cli v0.0.0-20230410130651-444cd52cc23d h1:pI4PaCMptEWCbvHuOAwfVVBFuYbwh97q2ACwHEH40p0=
 code.cloudfoundry.org/credhub-cli v0.0.0-20230410130651-444cd52cc23d/go.mod h1:7zAmd/M8Is+fydOUzw3Lme618N0REV623H8Dgl1t0NQ=
-code.cloudfoundry.org/goshims v0.23.0 h1:bsJVjOEz2Jn8/WvwXSGmzMYvDqogKwM6yO5O5Z35S0k=
-code.cloudfoundry.org/goshims v0.23.0/go.mod h1:L2VBklGSlw0Vl/CIBJWunqiNEmhE1/CG3SqlBoqQzzk=
+code.cloudfoundry.org/goshims v0.24.0 h1:smrYXrYA/AwLI3XC4cpMtRtc9muxdCLBXtEDsde/0jo=
+code.cloudfoundry.org/goshims v0.24.0/go.mod h1:L2VBklGSlw0Vl/CIBJWunqiNEmhE1/CG3SqlBoqQzzk=
 code.cloudfoundry.org/lager/v3 v3.0.2 h1:H0dcQY+814G1Ea0e5K/AMaMpcr+Pe5Iv+AALJEwrP9U=
 code.cloudfoundry.org/lager/v3 v3.0.2/go.mod h1:zA6tOIWhr5uZUez+PGpdfBHDWQOfhOrr0cgKDagZPwk=
 code.cloudfoundry.org/service-broker-store v0.65.0 h1:Bzl2mQnpzXrsvn5rl4sgmMAcdNBBGrHJpNDrXEbQiSw=
