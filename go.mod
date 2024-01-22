@@ -5,11 +5,11 @@ require (
 	code.cloudfoundry.org/goshims v0.29.0
 	code.cloudfoundry.org/lager/v3 v3.0.3
 	code.cloudfoundry.org/service-broker-store v0.73.0
-	code.cloudfoundry.org/volume-mount-options v0.78.0
+	code.cloudfoundry.org/volume-mount-options v0.79.0
 	github.com/google/gofuzz v1.2.0
 	github.com/maxbrunsfeld/counterfeiter/v6 v6.8.1
 	github.com/onsi/ginkgo/v2 v2.15.0
-	github.com/onsi/gomega v1.31.0
+	github.com/onsi/gomega v1.31.1
 	github.com/pivotal-cf/brokerapi/v10 v10.1.1
 	github.com/tedsuo/ifrit v0.0.0-20230330192023-5cba443a66c4
 )
