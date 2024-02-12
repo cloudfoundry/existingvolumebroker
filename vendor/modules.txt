@@ -27,8 +27,8 @@ code.cloudfoundry.org/lager/v3/lagertest
 code.cloudfoundry.org/service-broker-store/brokerstore
 code.cloudfoundry.org/service-broker-store/brokerstore/brokerstorefakes
 code.cloudfoundry.org/service-broker-store/brokerstore/credhub_shims
-# code.cloudfoundry.org/volume-mount-options v0.79.0
-## explicit; go 1.21
+# code.cloudfoundry.org/volume-mount-options v0.80.0
+## explicit; go 1.22.0
 code.cloudfoundry.org/volume-mount-options
 code.cloudfoundry.org/volume-mount-options/utils
 code.cloudfoundry.org/volume-mount-options/volume-mount-optionsfakes
