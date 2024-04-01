@@ -5,7 +5,7 @@ require (
 	code.cloudfoundry.org/goshims v0.33.0
 	code.cloudfoundry.org/lager/v3 v3.0.3
 	code.cloudfoundry.org/service-broker-store v0.81.0
-	code.cloudfoundry.org/volume-mount-options v0.82.0
+	code.cloudfoundry.org/volume-mount-options v0.83.0
 	github.com/google/gofuzz v1.2.0
 	github.com/maxbrunsfeld/counterfeiter/v6 v6.8.1
 	github.com/onsi/ginkgo/v2 v2.17.1
@@ -37,4 +37,4 @@ require (
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
 
-go 1.22.1
+go 1.22.2
