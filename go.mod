@@ -2,7 +2,7 @@ module code.cloudfoundry.org/existingvolumebroker
 
 require (
 	code.cloudfoundry.org/clock v1.1.0
-	code.cloudfoundry.org/goshims v0.34.0
+	code.cloudfoundry.org/goshims v0.35.0
 	code.cloudfoundry.org/lager/v3 v3.0.3
 	code.cloudfoundry.org/service-broker-store v0.86.0
 	code.cloudfoundry.org/volume-mount-options v0.87.0
@@ -28,14 +28,14 @@ require (
 	github.com/openzipkin/zipkin-go v0.4.2 // indirect
 	github.com/pborman/uuid v1.2.1 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
-	golang.org/x/crypto v0.22.0 // indirect
+	golang.org/x/crypto v0.23.0 // indirect
 	golang.org/x/mod v0.17.0 // indirect
-	golang.org/x/net v0.24.0 // indirect
+	golang.org/x/net v0.25.0 // indirect
 	golang.org/x/sync v0.7.0 // indirect
-	golang.org/x/sys v0.19.0 // indirect
-	golang.org/x/text v0.14.0 // indirect
+	golang.org/x/sys v0.20.0 // indirect
+	golang.org/x/text v0.15.0 // indirect
 	golang.org/x/tools v0.20.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
 
-go 1.22.3
+go 1.22.6
