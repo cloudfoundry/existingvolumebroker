@@ -19,7 +19,7 @@ import (
 	vmo "code.cloudfoundry.org/volume-mount-options"
 	vmou "code.cloudfoundry.org/volume-mount-options/utils"
 	"github.com/pivotal-cf/brokerapi/v11/domain"
-	`github.com/pivotal-cf/brokerapi/v11/domain/apiresponses`
+	"github.com/pivotal-cf/brokerapi/v11/domain/apiresponses"
 )
 
 const (
