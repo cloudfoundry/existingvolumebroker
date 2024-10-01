@@ -1060,7 +1060,7 @@ var _ = Describe("Broker", func() {
 				_, err := broker.Update(ctx, "", domain.UpdateDetails{}, false)
 				Expect(err).To(HaveOccurred())
 				Expect(err).To(MatchError(apiresponses.NewFailureResponse(errors.New(
-					"this service does not support instance updates. Please delete your service instance and create a new one with updated configuration."),
+					"this service does not support instance updates. Please delete your service instance and create a new one with updated configuration"),
 					422,
 					"")))
 			})
