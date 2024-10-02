@@ -19,7 +19,7 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gbytes"
-	`github.com/pivotal-cf/brokerapi/v11/domain`
+	"github.com/pivotal-cf/brokerapi/v11/domain"
 	"github.com/pivotal-cf/brokerapi/v11/domain/apiresponses"
 )
 
@@ -540,7 +540,7 @@ var _ = Describe("Broker", func() {
 				Expect(err).NotTo(HaveOccurred())
 
 				_, err = broker.Bind(ctx, "some-instance-id", "binding-id", bindDetails, false)
-				Expect(err).To(MatchError(`Invalid ro parameter value: ""`))
+				Expect(err).To(MatchError(`invalid ro parameter value: ""`))
 			})
 
 			It("should write state", func() {
@@ -1060,7 +1060,7 @@ var _ = Describe("Broker", func() {
 				_, err := broker.Update(ctx, "", domain.UpdateDetails{}, false)
 				Expect(err).To(HaveOccurred())
 				Expect(err).To(MatchError(apiresponses.NewFailureResponse(errors.New(
-					"This service does not support instance updates. Please delete your service instance and create a new one with updated configuration."),
+					"this service does not support instance updates. Please delete your service instance and create a new one with updated configuration"),
 					422,
 					"")))
 			})
@@ -1562,7 +1562,7 @@ var _ = Describe("Broker", func() {
 				Expect(err).NotTo(HaveOccurred())
 
 				_, err = broker.Bind(ctx, "some-instance-id", "binding-id", bindDetails, false)
-				Expect(err).To(MatchError(`Invalid ro parameter value: ""`))
+				Expect(err).To(MatchError(`invalid ro parameter value: ""`))
 			})
 
 			It("fills in the driver name", func() {
