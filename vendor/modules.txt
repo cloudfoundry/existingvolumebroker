@@ -1,7 +1,7 @@
-# code.cloudfoundry.org/clock v1.13.0
+# code.cloudfoundry.org/clock v1.14.0
 ## explicit; go 1.22.0
 code.cloudfoundry.org/clock
-# code.cloudfoundry.org/credhub-cli v0.0.0-20240916130534-17db04838e07
+# code.cloudfoundry.org/credhub-cli v0.0.0-20240930130634-18c8d3fad4fd
 ## explicit; go 1.22.0
 code.cloudfoundry.org/credhub-cli/credhub
 code.cloudfoundry.org/credhub-cli/credhub/auth
@@ -11,22 +11,22 @@ code.cloudfoundry.org/credhub-cli/credhub/credentials/generate
 code.cloudfoundry.org/credhub-cli/credhub/credentials/values
 code.cloudfoundry.org/credhub-cli/credhub/permissions
 code.cloudfoundry.org/credhub-cli/credhub/server
-# code.cloudfoundry.org/goshims v0.39.0
-## explicit; go 1.20
+# code.cloudfoundry.org/goshims v0.41.0
+## explicit; go 1.23
 code.cloudfoundry.org/goshims/osshim
 code.cloudfoundry.org/goshims/osshim/os_fake
-# code.cloudfoundry.org/lager/v3 v3.6.0
+# code.cloudfoundry.org/lager/v3 v3.8.0
 ## explicit; go 1.22.0
 code.cloudfoundry.org/lager/v3
 code.cloudfoundry.org/lager/v3/internal/truncate
 code.cloudfoundry.org/lager/v3/lagerctx
 code.cloudfoundry.org/lager/v3/lagertest
-# code.cloudfoundry.org/service-broker-store v0.89.0
+# code.cloudfoundry.org/service-broker-store v0.90.0
 ## explicit; go 1.22.3
 code.cloudfoundry.org/service-broker-store/brokerstore
 code.cloudfoundry.org/service-broker-store/brokerstore/brokerstorefakes
 code.cloudfoundry.org/service-broker-store/brokerstore/credhub_shims
-# code.cloudfoundry.org/volume-mount-options v0.96.0
+# code.cloudfoundry.org/volume-mount-options v0.97.0
 ## explicit; go 1.22.6
 code.cloudfoundry.org/volume-mount-options
 code.cloudfoundry.org/volume-mount-options/utils
@@ -34,12 +34,9 @@ code.cloudfoundry.org/volume-mount-options/volume-mount-optionsfakes
 # github.com/cloudfoundry/go-socks5 v0.0.0-20240831012420-2590b55236ee
 ## explicit; go 1.21.0
 github.com/cloudfoundry/go-socks5
-# github.com/cloudfoundry/socks5-proxy v0.2.125
+# github.com/cloudfoundry/socks5-proxy v0.2.126
 ## explicit; go 1.22.0
 github.com/cloudfoundry/socks5-proxy
-# github.com/go-chi/chi/v5 v5.1.0
-## explicit; go 1.14
-github.com/go-chi/chi/v5
 # github.com/go-logr/logr v1.4.2
 ## explicit; go 1.18
 github.com/go-logr/logr
@@ -58,12 +55,9 @@ github.com/google/go-cmp/cmp/internal/value
 ## explicit; go 1.12
 github.com/google/gofuzz
 github.com/google/gofuzz/bytesource
-# github.com/google/pprof v0.0.0-20240927233043-f3f46ee36851
+# github.com/google/pprof v0.0.0-20241001023024-f4c0cfd0cf1d
 ## explicit; go 1.22
 github.com/google/pprof/profile
-# github.com/google/uuid v1.6.0
-## explicit
-github.com/google/uuid
 # github.com/hashicorp/go-version v1.7.0
 ## explicit
 github.com/hashicorp/go-version
@@ -114,20 +108,14 @@ github.com/openzipkin/zipkin-go/idgenerator
 github.com/openzipkin/zipkin-go/model
 # github.com/pivotal-cf/brokerapi/v11 v11.0.9
 ## explicit; go 1.21
-github.com/pivotal-cf/brokerapi/v11
-github.com/pivotal-cf/brokerapi/v11/auth
 github.com/pivotal-cf/brokerapi/v11/domain
 github.com/pivotal-cf/brokerapi/v11/domain/apiresponses
-github.com/pivotal-cf/brokerapi/v11/handlers
-github.com/pivotal-cf/brokerapi/v11/internal/blog
-github.com/pivotal-cf/brokerapi/v11/middlewares
-github.com/pivotal-cf/brokerapi/v11/utils
 # github.com/tedsuo/ifrit v0.0.0-20230516164442-7862c310ad26
 ## explicit; go 1.16
 github.com/tedsuo/ifrit
 github.com/tedsuo/ifrit/grouper
 github.com/tedsuo/ifrit/sigmon
-# golang.org/x/crypto v0.27.0
+# golang.org/x/crypto v0.28.0
 ## explicit; go 1.20
 golang.org/x/crypto/bcrypt
 golang.org/x/crypto/blowfish
@@ -142,7 +130,7 @@ golang.org/x/crypto/ssh/internal/bcrypt_pbkdf
 golang.org/x/mod/internal/lazyregexp
 golang.org/x/mod/module
 golang.org/x/mod/semver
-# golang.org/x/net v0.29.0
+# golang.org/x/net v0.30.0
 ## explicit; go 1.18
 golang.org/x/net/context
 golang.org/x/net/html
@@ -153,11 +141,11 @@ golang.org/x/net/proxy
 # golang.org/x/sync v0.8.0
 ## explicit; go 1.18
 golang.org/x/sync/errgroup
-# golang.org/x/sys v0.25.0
+# golang.org/x/sys v0.26.0
 ## explicit; go 1.18
 golang.org/x/sys/cpu
 golang.org/x/sys/unix
-# golang.org/x/text v0.18.0
+# golang.org/x/text v0.19.0
 ## explicit; go 1.18
 golang.org/x/text/cases
 golang.org/x/text/encoding
@@ -179,7 +167,7 @@ golang.org/x/text/language
 golang.org/x/text/runes
 golang.org/x/text/transform
 golang.org/x/text/unicode/norm
-# golang.org/x/tools v0.25.0
+# golang.org/x/tools v0.26.0
 ## explicit; go 1.22.0
 golang.org/x/tools/cover
 golang.org/x/tools/go/ast/astutil
@@ -201,7 +189,6 @@ golang.org/x/tools/internal/imports
 golang.org/x/tools/internal/packagesinternal
 golang.org/x/tools/internal/pkgbits
 golang.org/x/tools/internal/stdlib
-golang.org/x/tools/internal/tokeninternal
 golang.org/x/tools/internal/typeparams
 golang.org/x/tools/internal/typesinternal
 golang.org/x/tools/internal/versions
