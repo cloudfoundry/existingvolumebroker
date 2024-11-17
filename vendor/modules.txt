@@ -1,7 +1,7 @@
-# code.cloudfoundry.org/clock v1.20.0
+# code.cloudfoundry.org/clock v1.21.0
 ## explicit; go 1.22.0
 code.cloudfoundry.org/clock
-# code.cloudfoundry.org/credhub-cli v0.0.0-20241104235029-3abce2cb0fc6
+# code.cloudfoundry.org/credhub-cli v0.0.0-20241111140541-fdb2c1524e73
 ## explicit; go 1.22.0
 code.cloudfoundry.org/credhub-cli/credhub
 code.cloudfoundry.org/credhub-cli/credhub/auth
@@ -11,22 +11,22 @@ code.cloudfoundry.org/credhub-cli/credhub/credentials/generate
 code.cloudfoundry.org/credhub-cli/credhub/credentials/values
 code.cloudfoundry.org/credhub-cli/credhub/permissions
 code.cloudfoundry.org/credhub-cli/credhub/server
-# code.cloudfoundry.org/goshims v0.48.0
+# code.cloudfoundry.org/goshims v0.49.0
 ## explicit; go 1.23
 code.cloudfoundry.org/goshims/osshim
 code.cloudfoundry.org/goshims/osshim/os_fake
-# code.cloudfoundry.org/lager/v3 v3.14.0
+# code.cloudfoundry.org/lager/v3 v3.15.0
 ## explicit; go 1.22.0
 code.cloudfoundry.org/lager/v3
 code.cloudfoundry.org/lager/v3/internal/truncate
 code.cloudfoundry.org/lager/v3/lagerctx
 code.cloudfoundry.org/lager/v3/lagertest
-# code.cloudfoundry.org/service-broker-store v0.96.0
+# code.cloudfoundry.org/service-broker-store v0.97.0
 ## explicit; go 1.23
 code.cloudfoundry.org/service-broker-store/brokerstore
 code.cloudfoundry.org/service-broker-store/brokerstore/brokerstorefakes
 code.cloudfoundry.org/service-broker-store/brokerstore/credhub_shims
-# code.cloudfoundry.org/volume-mount-options v0.103.0
+# code.cloudfoundry.org/volume-mount-options v0.104.0
 ## explicit; go 1.22.6
 code.cloudfoundry.org/volume-mount-options
 code.cloudfoundry.org/volume-mount-options/utils
@@ -106,7 +106,7 @@ github.com/onsi/gomega/types
 ## explicit; go 1.20
 github.com/openzipkin/zipkin-go/idgenerator
 github.com/openzipkin/zipkin-go/model
-# github.com/pivotal-cf/brokerapi/v11 v11.0.12
+# github.com/pivotal-cf/brokerapi/v11 v11.0.13
 ## explicit; go 1.21
 github.com/pivotal-cf/brokerapi/v11/domain
 github.com/pivotal-cf/brokerapi/v11/domain/apiresponses
