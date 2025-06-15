@@ -1,7 +1,7 @@
-# code.cloudfoundry.org/clock v1.39.0
+# code.cloudfoundry.org/clock v1.40.0
 ## explicit; go 1.23.0
 code.cloudfoundry.org/clock
-# code.cloudfoundry.org/credhub-cli v0.0.0-20250602130228-69976b334788
+# code.cloudfoundry.org/credhub-cli v0.0.0-20250609132220-beec578d3f6d
 ## explicit; go 1.23.0
 code.cloudfoundry.org/credhub-cli/credhub
 code.cloudfoundry.org/credhub-cli/credhub/auth
@@ -15,7 +15,7 @@ code.cloudfoundry.org/credhub-cli/credhub/server
 ## explicit; go 1.23.0
 code.cloudfoundry.org/goshims/osshim
 code.cloudfoundry.org/goshims/osshim/os_fake
-# code.cloudfoundry.org/lager/v3 v3.38.0
+# code.cloudfoundry.org/lager/v3 v3.39.0
 ## explicit; go 1.23.0
 code.cloudfoundry.org/lager/v3
 code.cloudfoundry.org/lager/v3/internal/truncate
@@ -34,7 +34,7 @@ code.cloudfoundry.org/volume-mount-options/volume-mount-optionsfakes
 # github.com/cloudfoundry/go-socks5 v0.0.0-20250423223041-4ad5fea42851
 ## explicit; go 1.21.0
 github.com/cloudfoundry/go-socks5
-# github.com/cloudfoundry/socks5-proxy v0.2.153
+# github.com/cloudfoundry/socks5-proxy v0.2.154
 ## explicit; go 1.23.0
 github.com/cloudfoundry/socks5-proxy
 # github.com/go-logr/logr v1.4.3
