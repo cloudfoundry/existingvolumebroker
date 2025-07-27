@@ -4,18 +4,18 @@ require (
 	code.cloudfoundry.org/clock v1.42.0
 	code.cloudfoundry.org/goshims v0.71.0
 	code.cloudfoundry.org/lager/v3 v3.41.0
-	code.cloudfoundry.org/service-broker-store v0.122.0
+	code.cloudfoundry.org/service-broker-store v0.123.0
 	code.cloudfoundry.org/volume-mount-options v0.126.0
 	github.com/google/gofuzz v1.2.0
 	github.com/maxbrunsfeld/counterfeiter/v6 v6.10.0
 	github.com/onsi/ginkgo/v2 v2.23.4
-	github.com/onsi/gomega v1.37.0
+	github.com/onsi/gomega v1.38.0
 	github.com/pivotal-cf/brokerapi/v11 v11.0.16
 	github.com/tedsuo/ifrit v0.0.0-20230516164442-7862c310ad26
 )
 
 require (
-	code.cloudfoundry.org/credhub-cli v0.0.0-20250714135215-5818ddba5dbd // indirect
+	code.cloudfoundry.org/credhub-cli v0.0.0-20250722200452-0eb58899fb2b // indirect
 	github.com/cloudfoundry/go-socks5 v0.0.0-20250423223041-4ad5fea42851 // indirect
 	github.com/cloudfoundry/socks5-proxy v0.2.156 // indirect
 	github.com/go-logr/logr v1.4.3 // indirect
