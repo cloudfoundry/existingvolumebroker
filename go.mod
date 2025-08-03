@@ -1,11 +1,11 @@
 module code.cloudfoundry.org/existingvolumebroker
 
 require (
-	code.cloudfoundry.org/clock v1.42.0
-	code.cloudfoundry.org/goshims v0.71.0
-	code.cloudfoundry.org/lager/v3 v3.41.0
-	code.cloudfoundry.org/service-broker-store v0.123.0
-	code.cloudfoundry.org/volume-mount-options v0.126.0
+	code.cloudfoundry.org/clock v1.43.0
+	code.cloudfoundry.org/goshims v0.72.0
+	code.cloudfoundry.org/lager/v3 v3.42.0
+	code.cloudfoundry.org/service-broker-store v0.124.0
+	code.cloudfoundry.org/volume-mount-options v0.127.0
 	github.com/google/gofuzz v1.2.0
 	github.com/maxbrunsfeld/counterfeiter/v6 v6.10.0
 	github.com/onsi/ginkgo/v2 v2.23.4

@@ -1,4 +1,4 @@
-# code.cloudfoundry.org/clock v1.42.0
+# code.cloudfoundry.org/clock v1.43.0
 ## explicit; go 1.23.0
 code.cloudfoundry.org/clock
 # code.cloudfoundry.org/credhub-cli v0.0.0-20250722200452-0eb58899fb2b
@@ -11,22 +11,22 @@ code.cloudfoundry.org/credhub-cli/credhub/credentials/generate
 code.cloudfoundry.org/credhub-cli/credhub/credentials/values
 code.cloudfoundry.org/credhub-cli/credhub/permissions
 code.cloudfoundry.org/credhub-cli/credhub/server
-# code.cloudfoundry.org/goshims v0.71.0
+# code.cloudfoundry.org/goshims v0.72.0
 ## explicit; go 1.23.0
 code.cloudfoundry.org/goshims/osshim
 code.cloudfoundry.org/goshims/osshim/os_fake
-# code.cloudfoundry.org/lager/v3 v3.41.0
+# code.cloudfoundry.org/lager/v3 v3.42.0
 ## explicit; go 1.23.0
 code.cloudfoundry.org/lager/v3
 code.cloudfoundry.org/lager/v3/internal/truncate
 code.cloudfoundry.org/lager/v3/lagerctx
 code.cloudfoundry.org/lager/v3/lagertest
-# code.cloudfoundry.org/service-broker-store v0.123.0
+# code.cloudfoundry.org/service-broker-store v0.124.0
 ## explicit; go 1.23.0
 code.cloudfoundry.org/service-broker-store/brokerstore
 code.cloudfoundry.org/service-broker-store/brokerstore/brokerstorefakes
 code.cloudfoundry.org/service-broker-store/brokerstore/credhub_shims
-# code.cloudfoundry.org/volume-mount-options v0.126.0
+# code.cloudfoundry.org/volume-mount-options v0.127.0
 ## explicit; go 1.23.0
 code.cloudfoundry.org/volume-mount-options
 code.cloudfoundry.org/volume-mount-options/utils
