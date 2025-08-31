@@ -1,15 +1,15 @@
 module code.cloudfoundry.org/existingvolumebroker
 
 require (
-	code.cloudfoundry.org/clock v1.44.0
-	code.cloudfoundry.org/goshims v0.73.0
-	code.cloudfoundry.org/lager/v3 v3.44.0
-	code.cloudfoundry.org/service-broker-store v0.127.0
-	code.cloudfoundry.org/volume-mount-options v0.128.0
+	code.cloudfoundry.org/clock v1.45.0
+	code.cloudfoundry.org/goshims v0.74.0
+	code.cloudfoundry.org/lager/v3 v3.45.0
+	code.cloudfoundry.org/service-broker-store v0.128.0
+	code.cloudfoundry.org/volume-mount-options v0.129.0
 	github.com/google/gofuzz v1.2.0
 	github.com/maxbrunsfeld/counterfeiter/v6 v6.10.0
-	github.com/onsi/ginkgo/v2 v2.25.1
-	github.com/onsi/gomega v1.38.1
+	github.com/onsi/ginkgo/v2 v2.25.2
+	github.com/onsi/gomega v1.38.2
 	github.com/pivotal-cf/brokerapi/v11 v11.0.16
 	github.com/tedsuo/ifrit v0.0.0-20230516164442-7862c310ad26
 )
@@ -22,7 +22,7 @@ require (
 	github.com/go-logr/logr v1.4.3 // indirect
 	github.com/go-task/slim-sprig/v3 v3.0.0 // indirect
 	github.com/google/go-cmp v0.7.0 // indirect
-	github.com/google/pprof v0.0.0-20250820193118-f64d9cf942d6 // indirect
+	github.com/google/pprof v0.0.0-20250830080959-101d87ff5bc3 // indirect
 	github.com/hashicorp/go-version v1.7.0 // indirect
 	github.com/openzipkin/zipkin-go v0.4.3 // indirect
 	go.uber.org/automaxprocs v1.6.0 // indirect
