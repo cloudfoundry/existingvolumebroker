@@ -15,7 +15,7 @@
 
 package apiresponses
 
-import "github.com/pivotal-cf/brokerapi/v11/domain"
+import "code.cloudfoundry.org/brokerapi/v13/domain"
 
 type EmptyResponse struct{}
 

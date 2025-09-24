@@ -4,8 +4,8 @@ package fakes
 import (
 	"sync"
 
+	"code.cloudfoundry.org/brokerapi/v13/domain"
 	"code.cloudfoundry.org/existingvolumebroker"
-	"github.com/pivotal-cf/brokerapi/v11/domain"
 )
 
 type FakeServices struct {
