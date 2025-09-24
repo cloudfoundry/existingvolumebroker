@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"regexp"
 
 	"code.cloudfoundry.org/existingvolumebroker"
 	"code.cloudfoundry.org/existingvolumebroker/fakes"
@@ -19,6 +20,7 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gbytes"
+	"github.com/onsi/gomega/gstruct"
 	"github.com/pivotal-cf/brokerapi/v11/domain"
 	"github.com/pivotal-cf/brokerapi/v11/domain/apiresponses"
 )
@@ -530,6 +532,13 @@ var _ = Describe("Broker", func() {
 				Expect(err).NotTo(HaveOccurred())
 
 				Expect(binding.VolumeMounts[0].Mode).To(Equal("rw"))
+			})
+
+			It("uses shared as its device type", func() {
+				binding, err := broker.Bind(ctx, "some-instance-id", "binding-id", bindDetails, false)
+				Expect(err).NotTo(HaveOccurred())
+
+				Expect(binding.VolumeMounts[0].DeviceType).To(Equal("shared"))
 			})
 
 			It("errors if mode is not a boolean", func() {
@@ -1545,6 +1554,13 @@ var _ = Describe("Broker", func() {
 				Expect(binding.VolumeMounts[0].Device.MountConfig).To(HaveKeyWithValue("ro", "true"))
 			})
 
+			It("uses shared as its device type", func() {
+				binding, err := broker.Bind(ctx, "some-instance-id", "binding-id", bindDetails, false)
+				Expect(err).NotTo(HaveOccurred())
+
+				Expect(binding.VolumeMounts[0].DeviceType).To(Equal("shared"))
+			})
+
 			It("should write state", func() {
 				previousSaveCallCount := fakeStore.SaveCallCount()
 
@@ -2044,6 +2060,147 @@ var _ = Describe("Broker", func() {
 					_, err := broker.Unbind(ctx, "some-instance-id", "binding-id", domain.UnbindDetails{}, false)
 					Expect(err).To(HaveOccurred())
 				})
+			})
+		})
+	})
+
+	Context("when the broker type is block", func() {
+		BeforeEach(func() {
+			fakeServices.ListReturns([]domain.Service{
+				{
+					ID:            "block-service-id",
+					Name:          "block",
+					Description:   "On-demand disk",
+					Bindable:      true,
+					PlanUpdatable: false,
+					Tags:          []string{"block"},
+					Requires:      []domain.RequiredPermission{"volume_mount"},
+					Plans: []domain.ServicePlan{
+						{
+							Name:        "on-demand",
+							ID:          "on-demand",
+							Description: "On-demand disk",
+						},
+					},
+				},
+			})
+
+			configMask, err := vmo.NewMountOptsMask(
+				[]string{
+					"ro",
+				},
+				map[string]interface{}{},
+				map[string]string{
+					"readonly": "ro",
+				},
+				[]string{},
+				[]string{},
+			)
+			Expect(err).NotTo(HaveOccurred())
+
+			broker = existingvolumebroker.New(
+				existingvolumebroker.BrokerTypeBlock,
+				logger,
+				fakeServices,
+				fakeOs,
+				nil,
+				fakeStore,
+				configMask,
+			)
+		})
+
+		Context(".Services", func() {
+			It("returns the service catalog as appropriate", func() {
+				results, err := broker.Services(ctx)
+				Expect(err).NotTo(HaveOccurred())
+
+				Expect(results).To(HaveLen(1))
+
+				result := results[0]
+				Expect(result.ID).To(Equal("block-service-id"))
+				Expect(result.Name).To(Equal("block"))
+				Expect(result.Description).To(Equal("On-demand disk"))
+				Expect(result.Bindable).To(Equal(true))
+				Expect(result.PlanUpdatable).To(Equal(false))
+				Expect(result.Tags).To(ConsistOf([]string{"block"}))
+				Expect(result.Requires).To(ContainElement(domain.RequiredPermission("volume_mount")))
+
+				Expect(result.Plans[0].Name).To(Equal("on-demand"))
+				Expect(result.Plans[0].ID).To(Equal("on-demand"))
+				Expect(result.Plans[0].Description).To(Equal("On-demand disk"))
+			})
+		})
+
+		Context(".Provision", func() {
+			var (
+				instanceID       string
+				provisionDetails domain.ProvisionDetails
+				asyncAllowed     bool
+
+				err error
+			)
+
+			BeforeEach(func() {
+				instanceID = "some-instance-id"
+
+				provisionDetails = domain.ProvisionDetails{PlanID: "on-demand"}
+				asyncAllowed = false
+			})
+
+			JustBeforeEach(func() {
+				_, err = broker.Provision(ctx, instanceID, provisionDetails, asyncAllowed)
+			})
+
+			It("should not error", func() {
+				By("not requiring a share (unlike nfs/smb", func() {
+					Expect(err).NotTo(HaveOccurred())
+				})
+			})
+		})
+
+		Context(".Bind", func() {
+			var (
+				instanceID, serviceID string
+				bindDetails           domain.BindDetails
+				bindParameters        map[string]interface{}
+			)
+
+			BeforeEach(func() {
+				instanceID = "some-instance-id"
+				fakeStore.RetrieveInstanceDetailsStub = func(instanceID string) (brokerstore.ServiceInstance, error) {
+					return brokerstore.ServiceInstance{
+						ServiceID:          serviceID,
+						ServiceFingerPrint: map[string]interface{}{},
+					}, nil
+				}
+
+				bindParameters = map[string]interface{}{}
+				bindMessage, err := json.Marshal(bindParameters)
+				Expect(err).NotTo(HaveOccurred())
+
+				bindDetails = domain.BindDetails{
+					AppGUID:       "guid",
+					RawParameters: bindMessage,
+				}
+			})
+
+			It("should return a dedicated device type", func() {
+				binding, err := broker.Bind(ctx, instanceID, "binding-id", bindDetails, false)
+				Expect(err).NotTo(HaveOccurred())
+
+				Expect(len(binding.VolumeMounts)).To(Equal(1))
+				Expect(binding.VolumeMounts[0]).To(gstruct.MatchFields(gstruct.IgnoreExtras, gstruct.Fields{
+					"Driver":       Equal("blockstoragedriver"),
+					"ContainerDir": Equal("/var/vcap/data/some-instance-id"),
+					"Mode":         Equal("rw"),
+					"DeviceType":   Equal("dedicated"),
+					"Device": gstruct.MatchFields(gstruct.IgnoreExtras, gstruct.Fields{
+						"VolumeId": MatchRegexp(fmt.Sprintf(`^%s-[a-f0-9]{32}$`, regexp.QuoteMeta(instanceID))),
+						"MountConfig": gstruct.MatchAllKeys(gstruct.Keys{
+							"source": Equal("ignored"),
+						}),
+					}),
+				}))
 			})
 		})
 	})
