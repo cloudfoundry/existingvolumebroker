@@ -102,10 +102,12 @@ func (b *Broker) Provision(context context.Context, instanceID string, details d
 
 	var configuration map[string]interface{}
 
-	var decoder = json.NewDecoder(bytes.NewBuffer(details.RawParameters))
-	err := decoder.Decode(&configuration)
-	if err != nil {
-		return domain.ProvisionedServiceSpec{}, apiresponses.ErrRawParamsInvalid
+	if details.RawParameters != nil {
+		var decoder = json.NewDecoder(bytes.NewBuffer(details.RawParameters))
+		err := decoder.Decode(&configuration)
+		if err != nil {
+			return domain.ProvisionedServiceSpec{}, apiresponses.ErrRawParamsInvalid
+		}
 	}
 
 	share := stringifyShare(configuration[SHARE_KEY])
