@@ -4,7 +4,7 @@ require (
 	code.cloudfoundry.org/clock v1.56.0
 	code.cloudfoundry.org/goshims v0.86.0
 	code.cloudfoundry.org/lager/v3 v3.56.0
-	code.cloudfoundry.org/service-broker-store v0.143.0
+	code.cloudfoundry.org/service-broker-store v0.144.0
 	code.cloudfoundry.org/volume-mount-options v0.141.0
 	github.com/google/gofuzz v1.2.0
 	github.com/maxbrunsfeld/counterfeiter/v6 v6.10.0
