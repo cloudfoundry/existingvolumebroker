@@ -39,6 +39,7 @@ type BrokerType int
 const (
 	BrokerTypeNFS BrokerType = iota
 	BrokerTypeSMB
+	BrokerTypeBlock
 )
 
 type Broker struct {
@@ -87,6 +88,10 @@ func (b *Broker) isNFSBroker() bool {
 	return b.brokerType == BrokerTypeNFS
 }
 
+func (b *Broker) isBlockStorageBroker() bool {
+	return b.brokerType == BrokerTypeBlock
+}
+
 func (b *Broker) Services(_ context.Context) ([]domain.Service, error) {
 	logger := b.logger.Session("services")
 	logger.Info("start")
@@ -100,16 +105,17 @@ func (b *Broker) Provision(context context.Context, instanceID string, details d
 	logger.Info("start")
 	defer logger.Info("end")
 
-	var configuration map[string]interface{}
-
-	var decoder = json.NewDecoder(bytes.NewBuffer(details.RawParameters))
-	err := decoder.Decode(&configuration)
-	if err != nil {
-		return domain.ProvisionedServiceSpec{}, apiresponses.ErrRawParamsInvalid
+	configuration := map[string]interface{}{}
+	if details.RawParameters != nil {
+		var decoder = json.NewDecoder(bytes.NewBuffer(details.RawParameters))
+		err := decoder.Decode(&configuration)
+		if err != nil {
+			return domain.ProvisionedServiceSpec{}, apiresponses.ErrRawParamsInvalid
+		}
 	}
 
 	share := stringifyShare(configuration[SHARE_KEY])
-	if share == "" {
+	if share == "" && !b.isBlockStorageBroker() {
 		return domain.ProvisionedServiceSpec{}, errors.New("config requires a \"share\" key")
 	}
 
@@ -147,7 +153,7 @@ func (b *Broker) Provision(context context.Context, instanceID string, details d
 		return domain.ProvisionedServiceSpec{}, apiresponses.ErrInstanceAlreadyExists
 	}
 
-	err = b.store.CreateInstanceDetails(instanceID, instanceDetails)
+	err := b.store.CreateInstanceDetails(instanceID, instanceDetails)
 	if err != nil {
 		return domain.ProvisionedServiceSpec{}, fmt.Errorf("failed to store instance details: %s", err.Error())
 	}
@@ -257,6 +263,7 @@ func (b *Broker) Bind(context context.Context, instanceID string, bindingID stri
 		return domain.Binding{}, err
 	}
 
+	deviceType := "shared"
 	driverName := "smbdriver"
 	if b.isNFSBroker() {
 		driverName = "nfsv3driver"
@@ -267,6 +274,14 @@ func (b *Broker) Bind(context context.Context, instanceID string, bindingID stri
 		//
 		// see (https://github.com/cloudfoundry/nfsv3driver/blob/ac1e1d26fec9a8551cacfabafa6e035f233c83e0/mapfs_mounter.go#L121)
 		mountOpts[SOURCE_KEY] = fmt.Sprintf("nfs://%s", mountOpts[SOURCE_KEY])
+	}
+	if b.isBlockStorageBroker() {
+		deviceType = "dedicated"
+		driverName = "blockstoragedriver"
+
+		// for backwards compatibility, because the driver infrastructure expects a source,
+		// we add one
+		mountOpts[SOURCE_KEY] = "ignored"
 	}
 
 	logger.Debug("volume-service-binding", lager.Data{"driver": driverName, "mountOpts": mountOpts})
@@ -290,7 +305,7 @@ func (b *Broker) Bind(context context.Context, instanceID string, bindingID stri
 			ContainerDir: evaluateContainerPath(opts, instanceID),
 			Mode:         mode,
 			Driver:       driverName,
-			DeviceType:   "shared",
+			DeviceType:   deviceType,
 			Device: domain.SharedDevice{
 				VolumeId:    volumeId,
 				MountConfig: mountConfig,
