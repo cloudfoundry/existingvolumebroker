@@ -1,11 +1,11 @@
 module code.cloudfoundry.org/existingvolumebroker
 
 require (
-	code.cloudfoundry.org/clock v1.61.0
-	code.cloudfoundry.org/goshims v0.92.0
-	code.cloudfoundry.org/lager/v3 v3.61.0
+	code.cloudfoundry.org/clock v1.62.0
+	code.cloudfoundry.org/goshims v0.93.0
+	code.cloudfoundry.org/lager/v3 v3.62.0
 	code.cloudfoundry.org/service-broker-store v0.145.0
-	code.cloudfoundry.org/volume-mount-options v0.146.0
+	code.cloudfoundry.org/volume-mount-options v0.147.0
 	github.com/google/gofuzz v1.2.0
 	github.com/maxbrunsfeld/counterfeiter/v6 v6.10.0
 	github.com/onsi/ginkgo/v2 v2.28.1
@@ -15,14 +15,14 @@ require (
 )
 
 require (
-	code.cloudfoundry.org/credhub-cli v0.0.0-20260216140056-3ed7ad5aa36b // indirect
+	code.cloudfoundry.org/credhub-cli v0.0.0-20260302140100-b28cba4f6966 // indirect
 	github.com/Masterminds/semver/v3 v3.4.0 // indirect
 	github.com/cloudfoundry/go-socks5 v0.0.0-20250423223041-4ad5fea42851 // indirect
-	github.com/cloudfoundry/socks5-proxy v0.2.169 // indirect
+	github.com/cloudfoundry/socks5-proxy v0.2.170 // indirect
 	github.com/go-logr/logr v1.4.3 // indirect
 	github.com/go-task/slim-sprig/v3 v3.0.0 // indirect
 	github.com/google/go-cmp v0.7.0 // indirect
-	github.com/google/pprof v0.0.0-20260202012954-cb029daf43ef // indirect
+	github.com/google/pprof v0.0.0-20260302011040-a15ffb7f9dcc // indirect
 	github.com/hashicorp/go-version v1.8.0 // indirect
 	github.com/openzipkin/zipkin-go v0.4.3 // indirect
 	go.yaml.in/yaml/v3 v3.0.4 // indirect
