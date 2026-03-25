@@ -2,11 +2,11 @@ module code.cloudfoundry.org/existingvolumebroker
 
 require (
 	code.cloudfoundry.org/brokerapi/v13 v13.0.20
-	code.cloudfoundry.org/clock v1.63.0
-	code.cloudfoundry.org/goshims v0.94.0
+	code.cloudfoundry.org/clock v1.64.0
+	code.cloudfoundry.org/goshims v0.95.0
 	code.cloudfoundry.org/lager/v3 v3.64.0
 	code.cloudfoundry.org/service-broker-store v0.147.0
-	code.cloudfoundry.org/volume-mount-options v0.148.0
+	code.cloudfoundry.org/volume-mount-options v0.149.0
 	github.com/google/gofuzz v1.2.0
 	github.com/maxbrunsfeld/counterfeiter/v6 v6.12.1
 	github.com/onsi/ginkgo/v2 v2.28.1
@@ -15,7 +15,7 @@ require (
 )
 
 require (
-	code.cloudfoundry.org/credhub-cli v0.0.0-20260316130226-db948d6c5f1c // indirect
+	code.cloudfoundry.org/credhub-cli v0.0.0-20260323130242-4632577e239e // indirect
 	github.com/Masterminds/semver/v3 v3.4.0 // indirect
 	github.com/cloudfoundry/go-socks5 v0.0.0-20250423223041-4ad5fea42851 // indirect
 	github.com/cloudfoundry/socks5-proxy v0.2.171 // indirect
