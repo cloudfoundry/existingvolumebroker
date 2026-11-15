@@ -2,10 +2,10 @@
 ## explicit; go 1.25.0
 code.cloudfoundry.org/brokerapi/v13/domain
 code.cloudfoundry.org/brokerapi/v13/domain/apiresponses
-# code.cloudfoundry.org/clock v1.95.0
+# code.cloudfoundry.org/clock v1.96.0
 ## explicit; go 1.26.0
 code.cloudfoundry.org/clock
-# code.cloudfoundry.org/credhub-cli v0.0.0-20261102140143-ec715de56bf2
+# code.cloudfoundry.org/credhub-cli v0.0.0-20261110195510-bffe26f57938
 ## explicit; go 1.26.10
 code.cloudfoundry.org/credhub-cli/credhub
 code.cloudfoundry.org/credhub-cli/credhub/auth
@@ -15,22 +15,22 @@ code.cloudfoundry.org/credhub-cli/credhub/credentials/generate
 code.cloudfoundry.org/credhub-cli/credhub/credentials/values
 code.cloudfoundry.org/credhub-cli/credhub/permissions
 code.cloudfoundry.org/credhub-cli/credhub/server
-# code.cloudfoundry.org/goshims v0.119.0
+# code.cloudfoundry.org/goshims v0.120.0
 ## explicit; go 1.26.0
 code.cloudfoundry.org/goshims/osshim
 code.cloudfoundry.org/goshims/osshim/os_fake
-# code.cloudfoundry.org/lager/v3 v3.94.0
+# code.cloudfoundry.org/lager/v3 v3.95.0
 ## explicit; go 1.26.0
 code.cloudfoundry.org/lager/v3
 code.cloudfoundry.org/lager/v3/internal/truncate
 code.cloudfoundry.org/lager/v3/lagerctx
 code.cloudfoundry.org/lager/v3/lagertest
-# code.cloudfoundry.org/service-broker-store v0.180.0
+# code.cloudfoundry.org/service-broker-store v0.181.0
 ## explicit; go 1.26.10
 code.cloudfoundry.org/service-broker-store/brokerstore
 code.cloudfoundry.org/service-broker-store/brokerstore/brokerstorefakes
 code.cloudfoundry.org/service-broker-store/brokerstore/credhub_shims
-# code.cloudfoundry.org/volume-mount-options v0.173.0
+# code.cloudfoundry.org/volume-mount-options v0.174.0
 ## explicit; go 1.26.0
 code.cloudfoundry.org/volume-mount-options
 code.cloudfoundry.org/volume-mount-options/utils
@@ -41,8 +41,8 @@ github.com/Masterminds/semver/v3
 # github.com/cloudfoundry/go-socks5 v0.0.0-20250423223041-4ad5fea42851
 ## explicit; go 1.21.0
 github.com/cloudfoundry/go-socks5
-# github.com/cloudfoundry/socks5-proxy v0.2.195
-## explicit; go 1.26.10
+# github.com/cloudfoundry/socks5-proxy v0.2.197
+## explicit; go 1.26.11
 github.com/cloudfoundry/socks5-proxy
 # github.com/go-logr/logr v1.4.4
 ## explicit; go 1.18
@@ -62,7 +62,7 @@ github.com/google/go-cmp/cmp/internal/value
 ## explicit; go 1.12
 github.com/google/gofuzz
 github.com/google/gofuzz/bytesource
-# github.com/google/pprof v0.0.0-20261105003125-4bf881d7fb0b
+# github.com/google/pprof v0.0.0-20261111200114-fac431ef4d26
 ## explicit; go 1.26.0
 github.com/google/pprof/profile
 # github.com/hashicorp/go-version v1.9.0
@@ -116,8 +116,6 @@ github.com/onsi/gomega/types
 ## explicit; go 1.20
 github.com/openzipkin/zipkin-go/idgenerator
 github.com/openzipkin/zipkin-go/model
-# github.com/sergi/go-diff v1.4.0
-## explicit; go 1.13
 # github.com/tedsuo/ifrit v0.0.0-20260908181113-dd353a7daa27
 ## explicit; go 1.25.0
 github.com/tedsuo/ifrit
@@ -126,7 +124,7 @@ github.com/tedsuo/ifrit/sigmon
 # go.yaml.in/yaml/v3 v3.0.6
 ## explicit; go 1.16
 go.yaml.in/yaml/v3
-# golang.org/x/crypto v0.58.0
+# golang.org/x/crypto v0.59.0
 ## explicit; go 1.26.0
 golang.org/x/crypto/bcrypt
 golang.org/x/crypto/blowfish
@@ -138,7 +136,7 @@ golang.org/x/crypto/internal/alias
 golang.org/x/crypto/internal/poly1305
 golang.org/x/crypto/ssh
 golang.org/x/crypto/ssh/internal/bcrypt_pbkdf
-# golang.org/x/mod v0.42.0
+# golang.org/x/mod v0.43.0
 ## explicit; go 1.26.0
 golang.org/x/mod/internal/lazyregexp
 golang.org/x/mod/module
@@ -151,14 +149,14 @@ golang.org/x/net/html/atom
 golang.org/x/net/html/charset
 golang.org/x/net/internal/socks
 golang.org/x/net/proxy
-# golang.org/x/sync v0.24.0
+# golang.org/x/sync v0.25.0
 ## explicit; go 1.26.0
 golang.org/x/sync/errgroup
-# golang.org/x/sys v0.49.0
+# golang.org/x/sys v0.50.0
 ## explicit; go 1.26.0
 golang.org/x/sys/cpu
 golang.org/x/sys/unix
-# golang.org/x/text v0.43.0
+# golang.org/x/text v0.44.0
 ## explicit; go 1.26.0
 golang.org/x/text/cases
 golang.org/x/text/encoding
